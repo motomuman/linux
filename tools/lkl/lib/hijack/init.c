@@ -282,6 +282,22 @@ hijack_init(void)
 			nd = lkl_netdev_macvtap_create(ifparams, offload);
 		} else if ((strcmp(iftype, "dpdk") == 0)) {
 			nd = lkl_netdev_dpdk_create(ifparams, offload, mac);
+		} else if ((strcmp(iftype, "netmap") == 0)) {
+			if (strncmp(ifparams, "netmap:", 7) == 0){
+				if(offload){
+					fprintf(stderr, "WARN: netmap does not use offload(vale use offload)\n");
+					fprintf(stderr, "WARN: Disabling offload features.\n");
+					offload = 0;
+				}
+				nd = lkl_netdev_netmap_create(ifparams, offload);
+			}else if(strncmp(ifparams, "vale", 4) == 0){
+				nd = lkl_netdev_netmap_create(ifparams, offload);
+			}else{
+				fprintf(stderr,
+						"Invalid ifparams, netmap support following ifparams"
+						"netmap:[ifname]\n"
+						"vale[switch number]:[port number]\n");
+			}
 		} else {
 			if (offload) {
 				fprintf(stderr,

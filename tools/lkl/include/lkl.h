@@ -426,6 +426,17 @@ struct lkl_netdev *lkl_netdev_raw_create(const char *ifname);
  */
 struct lkl_netdev *lkl_netdev_macvtap_create(const char *path, int offload);
 
+/**
+ * lkl_netdev_netmap_create - create netmap net_device for the virtio
+ * net backend
+ *
+ * @path - a file name for the netmap device.
+ *         vale[switch number]:[port number]
+ *         netmap:[ifname]
+ * @offload - offload bits for the device
+ */
+struct lkl_netdev *lkl_netdev_netmap_create(const char *ifname, int offload);
+
 /*
  * lkl_register_dbg_handler- register a signal handler that loads a debug lib.
  *
