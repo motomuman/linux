@@ -196,6 +196,8 @@ hijack_init(void)
 	char *mac_str = getenv("LKL_HIJACK_NET_MAC");
 	char *netmask_len = getenv("LKL_HIJACK_NET_NETMASK_LEN");
 	char *netmask6_len = getenv("LKL_HIJACK_NET_NETMASK6_LEN");
+	char *ifgateway = getenv("LKL_HIJACK_NET_IFGATEWAY");
+	char *ifgateway6 = getenv("LKL_HIJACK_NET_IFGATEWAY6");
 	char *gateway = getenv("LKL_HIJACK_NET_GATEWAY");
 	char *gateway6 = getenv("LKL_HIJACK_NET_GATEWAY6");
 	char *debug = getenv("LKL_HIJACK_DEBUG");
@@ -400,6 +402,17 @@ hijack_init(void)
 		}
 	}
 
+	if (nd_ifindex >= 0 && ifgateway) {
+		unsigned int addr = inet_addr(ifgateway);
+
+		if (addr != INADDR_NONE) {
+			ret = lkl_if_set_ipv4_gateway(nd_ifindex, addr);
+			if (ret< 0)
+				fprintf(stderr, "failed to set IPv4 gateway: %s\n",
+					lkl_strerror(ret));
+		}
+	}
+
 	if (nd_ifindex >= 0 && gateway) {
 		unsigned int addr = inet_addr(gateway);
 
@@ -419,8 +432,22 @@ hijack_init(void)
 			fprintf(stderr, "Invalid ipv6 addr: %s\n", ipv6);
 		}  else {
 			ret = lkl_if_set_ipv6(nd_ifindex, &addr, pflen);
+
 			if (ret < 0)
 				fprintf(stderr, "failed to set IPv6address: %s\n",
+					lkl_strerror(ret));
+		}
+	}
+
+	if (nd_ifindex >= 0 && ifgateway6) {
+		char gw[16];
+
+		if (inet_pton(AF_INET6, gateway6, gw) != 1) {
+			fprintf(stderr, "Invalid ipv6 gateway: %s\n", gateway6);
+		} else {
+			ret = lkl_if_set_ipv6_gateway(nd_ifindex, gw);
+			if (ret< 0)
+				fprintf(stderr, "failed to set IPv6 gateway: %s\n",
 					lkl_strerror(ret));
 		}
 	}

@@ -300,6 +300,16 @@ int lkl_if_set_mtu(int ifindex, int mtu);
 int lkl_if_set_ipv4(int ifindex, unsigned int addr, unsigned int netmask_len);
 
 /**
+ * lkl_if_set_ipv4_gateway - add an IPv4 default route in rule
+ * 				(from ifindex)
+ *
+ * @ifindex - the ifindex of the interface
+ * @addr - 4-byte IP address of the gateway (i.e., struct in_addr)
+ * @returns - return 0 if no error: otherwise negative value returns
+ */
+int lkl_if_set_ipv4_gateway(int ifindex, unsigned int addr);
+
+/**
  * lkl_set_ipv4_gateway - add an IPv4 default route
  *
  * @addr - 4-byte IP address of the gateway (i.e., struct in_addr)
@@ -317,6 +327,16 @@ int lkl_set_ipv4_gateway(unsigned int addr);
  * @returns - return 0 if no error: otherwise negative value returns
  */
 int lkl_if_set_ipv6(int ifindex, void* addr, unsigned int netprefix_len);
+
+/**
+ * lkl_if_set_ipv6_gateway - add an IPv6 default route in rule
+ * 				(from ifindex)
+ *
+ * @ifindex - the ifindex of the interface
+ * @addr - 16-byte IPv6 address of the gateway (i.e., struct in6_addr)
+ * @returns - return 0 if no error: otherwise negative value returns
+ */
+int lkl_if_set_ipv6_gateway(int ifindex, void* addr);
 
 /**
  * lkl_set_ipv6_gateway - add an IPv6 default route
@@ -470,6 +490,38 @@ int lkl_if_add_ip(int ifindex, int af, void *addr, unsigned int netprefix_len);
  * @netprefix_len - prefix length of the @addr
  */
 int lkl_if_del_ip(int ifindex, int af, void *addr, unsigned int netprefix_len);
+
+/**
+ * lkl_add_gateway - add gateway, from addr is interface address
+ * @af - address family of the ip address. Must be LKL_AF_INET or LKL_AF_INET6
+ * @addr - ip address of the entry in network byte order, from address of this rule
+ */
+int lkl_add_gateway(int af, void * addr);
+
+/**
+ * lkl_if_add_rule - add an ip rule, from addr is interface address
+ * @ifindex - the ifindex of the interface, used as table id of this rule
+ * @af - address family of the ip address. Must be LKL_AF_INET or LKL_AF_INET6
+ * @addr - ip address of the entry in network byte order, from address of this rule
+ */
+int lkl_if_add_rule(int ifindex, int af, void * addr);
+
+/**
+ * lkl_if_add_gateway - add gateway to rule(from ifindex interface)
+ * @ifindex - the ifindex of the interface, used as table id of this rule
+ * @af - address family of the ip address. Must be LKL_AF_INET or LKL_AF_INET6
+ * @addr - ip address of the entry in network byte order, from address of this rule
+ */
+int lkl_if_add_gateway(int ifindex, int af, void * addr);
+
+/**
+ * lkl_if_add_linklocal - add linklocal route to rule(from ifindex interface)
+ * @ifindex - the ifindex of the interface, used as table id of this rule
+ * @af - address family of the ip address. Must be LKL_AF_INET or LKL_AF_INET6
+ * @addr - ip address of the entry in network byte order, from address of this rule
+ * @netprefix_len - prefix length of the @addr
+ */
+int lkl_if_add_linklocal(int ifindex, int af,  void *addr, int netprefix_len);
 
 /**
  * lkl_if_wait_ipv6_dad - wait for DAD to be done for a ipv6 address

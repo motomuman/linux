@@ -85,45 +85,32 @@ int lkl_if_set_mtu(int ifindex, int mtu)
 	return err;
 }
 
-int lkl_if_set_ipv4(int ifindex, unsigned int addr, unsigned int netmask_len)
+int lkl_if_set_ipv4(int ifindex, unsigned int addr, unsigned int netprefix_len)
 {
-	return lkl_if_add_ip(ifindex, LKL_AF_INET, &addr, netmask_len);
+	int err;
+	err  = lkl_if_add_ip(ifindex, LKL_AF_INET, &addr, netprefix_len);
+	if(err)
+		return err;
+	err = lkl_if_add_rule(ifindex, LKL_AF_INET, &addr);
+	if(err)
+		return err;
+
+	return lkl_if_add_linklocal(ifindex, LKL_AF_INET,  &addr, netprefix_len);
+}
+
+int lkl_if_set_ipv4_gateway(int ifindex, unsigned int addr)
+{
+	return lkl_if_add_gateway(ifindex, LKL_AF_INET, &addr);
 }
 
 int lkl_set_ipv4_gateway(unsigned int addr)
 {
-	struct lkl_rtentry re;
-	int err, sock = lkl_sys_socket(LKL_AF_INET, LKL_SOCK_DGRAM, 0);
-
-	if (sock < 0)
-		return sock;
-
-	memset(&re, 0, sizeof(re));
-	set_sockaddr((struct lkl_sockaddr_in *) &re.rt_dst, 0, 0);
-	set_sockaddr((struct lkl_sockaddr_in *) &re.rt_genmask, 0, 0);
-	set_sockaddr((struct lkl_sockaddr_in *) &re.rt_gateway, addr, 0);
-	re.rt_flags = LKL_RTF_UP | LKL_RTF_GATEWAY;
-	err = lkl_sys_ioctl(sock, LKL_SIOCADDRT, (long)&re);
-	lkl_sys_close(sock);
-
-	return err;
+	return lkl_add_gateway(LKL_AF_INET, &addr);
 }
 
 int lkl_set_ipv6_gateway(void* addr)
 {
-	int err, sock;
-	struct lkl_in6_rtmsg route;
-
-	sock = lkl_sys_socket(LKL_AF_INET6, LKL_SOCK_DGRAM, 0);
-	if (sock < 0)
-		return sock;
-	memset(&route, 0, sizeof(route));
-	memcpy(&route.rtmsg_gateway, addr, sizeof(struct lkl_in6_addr));
-	route.rtmsg_flags = LKL_RTF_UP | LKL_RTF_GATEWAY;
-
-	err = lkl_sys_ioctl(sock, LKL_SIOCADDRT, (long)&route);
-	lkl_sys_close(sock);
-	return err;
+	return lkl_add_gateway(LKL_AF_INET6, addr);
 }
 
 int lkl_netdev_get_ifindex(int id)
@@ -352,7 +339,15 @@ int lkl_if_set_ipv6(int ifindex, void *addr, unsigned int netprefix_len)
 	int err = lkl_if_add_ip(ifindex, LKL_AF_INET6, addr, netprefix_len);
 	if (err)
 		return err;
-	return lkl_if_wait_ipv6_dad(ifindex, addr);
+	err =  lkl_if_wait_ipv6_dad(ifindex, addr);
+	if (err)
+		return err;
+
+	err = lkl_if_add_rule(ifindex, LKL_AF_INET6, addr);
+	if (err)
+		return err;
+
+	return lkl_if_add_linklocal(ifindex, LKL_AF_INET6,  addr, netprefix_len);
 }
 
 /* returns:
@@ -528,6 +523,152 @@ int lkl_if_del_ip(int ifindex, int af, void *addr, unsigned int netprefix_len)
 {
 	return ipaddr_modify(LKL_RTM_DELADDR, 0, ifindex, af,
 			     addr, netprefix_len);
+}
+
+static int iproute_modify(int cmd, unsigned int flags, int ifindex, int af, void *addr, 
+			int netprefix_len)
+{
+	struct {
+		struct lkl_nlmsghdr	n;
+		struct lkl_rtmsg	r;
+		char			buf[1024];
+	} req = {
+		.n.nlmsg_len = LKL_NLMSG_LENGTH(sizeof(struct lkl_rtmsg)),
+		.n.nlmsg_flags = LKL_NLM_F_REQUEST | flags,
+		.n.nlmsg_type = cmd,
+		.r.rtm_family = af,
+		.r.rtm_table = LKL_RT_TABLE_MAIN,
+		.r.rtm_scope = LKL_RT_SCOPE_UNIVERSE,
+	};
+	int err, addr_sz;
+	int i, fd;
+
+	fd = netlink_sock(0);
+	if (fd < 0){
+		lkl_printf("netlink_sock error: %d\n", fd);
+		return fd;
+	}
+
+	if (af == LKL_AF_INET)
+		addr_sz = 4;
+	else if (af == LKL_AF_INET6)
+		addr_sz = 16;
+	else {
+		lkl_printf("Bad address family: %d\n", af);
+		return -1;
+	}
+
+	if (cmd != LKL_RTM_DELROUTE) {
+		req.r.rtm_protocol = LKL_RTPROT_BOOT;
+		req.r.rtm_scope = LKL_RT_SCOPE_UNIVERSE;
+		req.r.rtm_type = LKL_RTN_UNICAST;
+	}
+
+	if(netprefix_len == 0){
+		//gateway(via)
+		addattr_l(&req.n, sizeof(req), LKL_RTA_GATEWAY, addr, addr_sz);
+	}else if(af == LKL_AF_INET){
+		//link local ipv4
+		req.r.rtm_dst_len = netprefix_len;
+		unsigned int netaddr = *(unsigned int * )addr;
+		netaddr = ntohl(netaddr);
+		netaddr = (netaddr >> (32 - req.r.rtm_dst_len)) <<(32 - req.r.rtm_dst_len);
+		netaddr =  htonl(netaddr);
+		*(unsigned int * )addr = netaddr;
+		addattr_l(&req.n, sizeof(req), LKL_RTA_DST, addr, addr_sz);
+	}else if(af == LKL_AF_INET6){
+		//link local ipv6
+		req.r.rtm_dst_len = netprefix_len;
+		struct lkl_in6_addr netaddr = *(struct lkl_in6_addr * )addr;
+		int rmbyte = req.r.rtm_dst_len/8;
+		int rmbit = req.r.rtm_dst_len%8;
+		for(i = 0; i < rmbyte; i++){
+			netaddr.in6_u.u6_addr8[16-i] = 0;
+		}
+		netaddr.in6_u.u6_addr8[16-rmbyte] = (netaddr.in6_u.u6_addr8[16-rmbyte] >> (rmbit)) << rmbit;
+		*(struct lkl_in6_addr * )addr = netaddr;
+		addattr_l(&req.n, sizeof(req), LKL_RTA_DST, addr, addr_sz);
+	}
+
+	//dev
+	if(ifindex != LKL_RT_TABLE_MAIN){
+		req.r.rtm_table = ifindex;
+		addattr_l(&req.n, sizeof(req), LKL_RTA_OIF, &ifindex, addr_sz);
+	}
+
+	err = rtnl_talk(fd, &req.n);
+	lkl_sys_close(fd);
+	return err;
+}
+
+int lkl_if_add_linklocal(int ifindex, int af,  void *addr, int netprefix_len)
+{
+	return iproute_modify(LKL_RTM_NEWROUTE, LKL_NLM_F_CREATE|LKL_NLM_F_EXCL, 
+			ifindex, af, addr, netprefix_len);
+}
+
+int lkl_if_add_gateway(int ifindex, int af, void * addr)
+{
+	return iproute_modify(LKL_RTM_NEWROUTE, LKL_NLM_F_CREATE|LKL_NLM_F_EXCL, 
+			ifindex, af, addr, 0);
+}
+
+int lkl_add_gateway(int af, void * addr)
+{
+	return iproute_modify(LKL_RTM_NEWROUTE, LKL_NLM_F_CREATE|LKL_NLM_F_EXCL, 
+			LKL_RT_TABLE_MAIN, af, addr, 0);
+}
+
+static int iprule_modify(int cmd, int ifindex, int af, void *addr)
+{
+	struct {
+		struct lkl_nlmsghdr	n;
+		struct lkl_rtmsg		r;
+		char			buf[1024];
+	} req = {
+		.n.nlmsg_type = cmd,
+		.n.nlmsg_len = LKL_NLMSG_LENGTH(sizeof(struct lkl_rtmsg)),
+		.n.nlmsg_flags = LKL_NLM_F_REQUEST,
+		.r.rtm_protocol = LKL_RTPROT_BOOT,
+		.r.rtm_scope = LKL_RT_SCOPE_UNIVERSE,
+		.r.rtm_family = af,
+		.r.rtm_type = LKL_RTN_UNSPEC,
+	};
+	int fd, err;
+	int addr_sz;
+
+	if (af == LKL_AF_INET)
+		addr_sz = 4;
+	else if (af == LKL_AF_INET6)
+		addr_sz = 16;
+	else {
+		lkl_printf("Bad address family: %d\n", af);
+		return -1;
+	}
+
+	fd = netlink_sock(0);
+	if (fd < 0)
+		return fd;
+
+	if (cmd == LKL_RTM_NEWRULE) {
+		req.n.nlmsg_flags |= LKL_NLM_F_CREATE|LKL_NLM_F_EXCL;
+		req.r.rtm_type = LKL_RTN_UNICAST;
+	}
+
+	req.r.rtm_src_len = 8 * addr_sz;;
+	addattr_l(&req.n, sizeof(req), LKL_FRA_SRC, addr, addr_sz);
+
+	//use ifindex as table id
+	req.r.rtm_table = ifindex;
+	err = rtnl_talk(fd, &req.n);
+
+	lkl_sys_close(fd);
+	return err;
+}
+
+int lkl_if_add_rule(int ifindex, int af, void * addr)
+{
+	return iprule_modify(LKL_RTM_NEWRULE, ifindex, af, addr);
 }
 
 static int qdisc_add(int cmd, int flags, int ifindex,
