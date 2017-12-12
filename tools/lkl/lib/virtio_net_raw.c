@@ -89,5 +89,5 @@ struct lkl_netdev *lkl_netdev_raw_create(const char *ifname)
 	fd_flags = fcntl(fd, F_GETFD, NULL);
 	fcntl(fd, F_SETFL, fd_flags | O_NONBLOCK);
 
-	return lkl_register_netdev_fd(fd, fd);
+	return lkl_register_netdev_fd(fd, fd, 0);
 }

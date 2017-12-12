@@ -77,7 +77,7 @@ struct lkl_netdev *lkl_netdev_tap_init(const char *path, int offload,
 		return NULL;
 	}
 #endif
-	nd = lkl_register_netdev_fd(fd, fd);
+	nd = lkl_register_netdev_fd(fd, fd, 0);
 	if (!nd) {
 		perror("failed to register to.");
 		close(fd);

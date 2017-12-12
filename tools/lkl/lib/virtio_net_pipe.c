@@ -56,7 +56,7 @@ struct lkl_netdev *lkl_netdev_pipe_create(const char *_ifname, int offload)
 		return NULL;
 	}
 
-	nd = lkl_register_netdev_fd(fd_rx, fd_tx);
+	nd = lkl_register_netdev_fd(fd_rx, fd_tx, 1);
 	if (!nd) {
 		perror("failed to register to.");
 		close(fd_rx);

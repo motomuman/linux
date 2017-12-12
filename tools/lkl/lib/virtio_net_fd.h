@@ -9,9 +9,10 @@ struct ifreq;
  *
  * @fd_rx - a POSIX file descriptor number for input
  * @fd_tx - a POSIX file descriptor number for output
+ * @is_pipe - device is pipe
  * @returns a struct lkl_netdev_linux_fdnet entry for virtio-net
  */
-struct lkl_netdev *lkl_register_netdev_fd(int fd_rx, int fd_tx);
+struct lkl_netdev *lkl_register_netdev_fd(int fd_rx, int fd_tx, int is_pipe);
 
 
 /**
