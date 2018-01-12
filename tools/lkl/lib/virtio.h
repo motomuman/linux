@@ -13,7 +13,7 @@
 #define MAX_SKB_FRAGS (65536/PAGE_SIZE + 1)
 #endif
 
-#define VIRTIO_REQ_MAX_BUFS	(MAX_SKB_FRAGS + 2)
+#define VIRTIO_REQ_MAX_BUFS	64
 
 struct virtio_req {
 	uint16_t buf_count;

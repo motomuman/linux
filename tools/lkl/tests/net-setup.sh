@@ -92,6 +92,11 @@ tap_prepare()
     fi
 }
 
+tap_change_mtu()
+{
+    lkl_test_cmd sudo ip link set $(tap_ifname $1) mtu $2
+}
+
 tap_setup()
 {
     lkl_test_cmd sudo ip tuntap add dev $(tap_ifname $1) mode tap user $TAP_USER
