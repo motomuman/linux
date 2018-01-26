@@ -607,6 +607,12 @@ test_tap_multitable_ipv6_rule_table_7()
     echo "$addr" | grep $(ip6_host 1)
 }
 
+test_tap_id()
+{
+	id
+	exit 1
+}
+
 test_vde_setup()
 {
     set_cfgjson << EOF
@@ -741,7 +747,8 @@ else
     lkl_test_run 21 test_tap_multitable_ipv6_rule_table_5
     lkl_test_run 22 test_tap_multitable_ipv6_rule_table_6
     lkl_test_run 23 test_tap_multitable_ipv6_rule_table_7
-    lkl_test_run 24 test_tap_cleanup
+    lkl_test_run 24 test_tap_id
+    lkl_test_run 25 test_tap_cleanup
 fi
 
 if [ -z "$LKL_HOST_CONFIG_VIRTIO_NET_VDE" ]; then
