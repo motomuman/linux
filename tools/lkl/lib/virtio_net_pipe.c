@@ -21,6 +21,8 @@
 
 #include "virtio.h"
 
+#define PIPE_PKT_HEADER_LEN 4
+
 struct lkl_netdev_pipe {
 	struct lkl_netdev dev;
 	/* file-descriptor based device */
@@ -43,19 +45,55 @@ struct lkl_netdev_pipe {
 	int pipe[2];
 };
 
-static int pipe_net_tx(struct lkl_netdev *nd, struct iovec *iov, int cnt)
+static int get_iovlen(struct iovec *iov, int cnt)
+{
+	int i, iovlen = 0;
+
+	for (i = 0; i < cnt; i++)
+		iovlen += iov[i].iov_len;
+	return iovlen;
+}
+
+static int tx_set_next(int shift_len, struct iovec *iov, int cnt)
+{
+	int i, shift, cur = 0;
+
+	for (i = 0; i < cnt; i++) {
+		if (cur + (int)iov[i].iov_len <= shift_len)
+			shift = iov[i].iov_len;
+		else
+			shift = shift_len - cur;
+		iov[i].iov_base += shift;
+		iov[i].iov_len -= shift;
+		cur += shift;
+		if (cur == shift_len)
+			return 0;
+	}
+	fprintf(stderr, "BUG: tx set next shift(%d) exceeds iov length\n",
+			shift_len);
+	return -1;
+}
+
+static int write_next_pktlen(struct lkl_netdev_pipe *nd_pipe, int pktlen)
 {
 	int ret;
-	struct lkl_netdev_pipe *nd_pipe =
-		container_of(nd, struct lkl_netdev_pipe, dev);
+	struct iovec txiov;
+	uint8_t tmpbuf[PIPE_PKT_HEADER_LEN];
+
+	txiov.iov_len = PIPE_PKT_HEADER_LEN;
+	tmpbuf[0] = (pktlen) & 0xff;
+	tmpbuf[1] = (pktlen >> 8) & 0xff;
+	tmpbuf[2] = (pktlen >> 16) & 0xff;
+	tmpbuf[3] = (pktlen >> 24) & 0xff;
+	txiov.iov_base = tmpbuf;
 
 	do {
-		ret = writev(nd_pipe->pipe_tx, iov, cnt);
+		ret = writev(nd_pipe->pipe_tx, &txiov, 1);
 	} while (ret == -1 && errno == EINTR);
 
 	if (ret < 0) {
 		if (errno != EAGAIN) {
-			perror("write to pipe netdev fails");
+			perror("write to pipe netdev fails header");
 		} else {
 			char tmp = 0;
 
@@ -67,14 +105,121 @@ static int pipe_net_tx(struct lkl_netdev *nd, struct iovec *iov, int cnt)
 	return ret;
 }
 
-static int pipe_net_rx(struct lkl_netdev *nd, struct iovec *iov, int cnt)
+static int wait_tx_pollout(int txfd)
 {
-	int ret;
+	struct pollfd pfds[1] = {
+		{
+			.fd = txfd,
+			.events = POLLOUT,
+		},
+	};
+
+	poll(pfds, 1, -1);
+	return 0;
+}
+
+static int copy_iov_info(struct iovec *iov, struct iovec *work_iov, int cnt)
+{
+	int i;
+
+	for (i = 0; i < cnt; i++) {
+		work_iov[i].iov_base = iov[i].iov_base;
+		work_iov[i].iov_len = iov[i].iov_len;
+	}
+	return 0;
+}
+
+static int pipe_net_tx(struct lkl_netdev *nd, struct iovec *iov, int cnt)
+{
 	struct lkl_netdev_pipe *nd_pipe =
 		container_of(nd, struct lkl_netdev_pipe, dev);
+	int ret, pktlen, write_len = 0;
+	struct iovec work_iov[VIRTIO_REQ_MAX_BUFS];
 
+	if (cnt > VIRTIO_REQ_MAX_BUFS) {
+		fprintf(stderr, "rx iov array length exceeds\n");
+		return 0;
+	}
+
+	pktlen = get_iovlen(iov, cnt);
+	ret = write_next_pktlen(nd_pipe, pktlen);
+	if (ret < 0)
+		return ret;
+
+	copy_iov_info(iov, work_iov, cnt);
+
+	while (write_len < pktlen) {
+		do {
+			ret = writev(nd_pipe->pipe_tx, work_iov, cnt);
+		} while (ret == -1 && errno == EINTR);
+
+		if (ret < 0) {
+			if (errno != EAGAIN)
+				perror("write to pipe netdev fails");
+			wait_tx_pollout(nd_pipe->pipe_tx);
+		} else {
+			write_len += ret;
+			if (write_len == pktlen)
+				break;
+			tx_set_next(ret, work_iov, cnt);
+		}
+	}
+	return pktlen;
+}
+
+static int rx_adjust_len(int pktlen, struct iovec *iov, int cnt)
+{
+	int i, adjust, cur_len = 0;
+
+	for (i = 0; i < cnt; i++) {
+		if (cur_len + (int)iov[i].iov_len > pktlen)
+			adjust = iov[i].iov_len - pktlen + cur_len;
+		else
+			adjust = 0;
+		iov[i].iov_len -= adjust;
+		cur_len += iov[i].iov_len;
+	}
+	if (cur_len < pktlen) {
+		fprintf(stderr, "BUG: rx adjust length error pktlen = %d\n",
+				pktlen);
+		return -1;
+	}
+	return 0;
+}
+
+static int rx_set_next(int shift_len, struct iovec *iov, int cnt)
+{
+	int i, shift, cur_len = 0;
+
+	for (i = 0; i < cnt && cur_len < shift_len; i++) {
+		if (cur_len + (int)iov[i].iov_len >= shift_len)
+			shift = shift_len - cur_len;
+		else
+			shift = iov[i].iov_len;
+		cur_len += shift;
+		iov[i].iov_base += shift;
+		iov[i].iov_len -= shift;
+	}
+
+	if (cur_len < shift_len) {
+		fprintf(stderr, "BUG: rx set next iov, shift length %d\n",
+				shift_len);
+		return -1;
+	}
+
+	return 0;
+}
+
+static int read_next_pktlen(struct lkl_netdev_pipe *nd_pipe)
+{
+	int ret, pktlen;
+	struct iovec rxiov;
+	uint8_t tmpbuf[PIPE_PKT_HEADER_LEN];
+
+	rxiov.iov_len = PIPE_PKT_HEADER_LEN;
+	rxiov.iov_base = tmpbuf;
 	do {
-		ret = readv(nd_pipe->pipe_rx, (struct iovec *)iov, cnt);
+		ret = readv(nd_pipe->pipe_rx, (struct iovec *)&rxiov, 1);
 	} while (ret == -1 && errno == EINTR);
 
 	if (ret < 0) {
@@ -87,8 +232,94 @@ static int pipe_net_rx(struct lkl_netdev *nd, struct iovec *iov, int cnt)
 			if (write(nd_pipe->pipe[1], &tmp, 1) < 0)
 				perror("virtio net pipe pipe write");
 		}
+		return ret;
 	}
-	return ret;
+	pktlen =  ((uint8_t *)rxiov.iov_base)[0];
+	pktlen += (((uint8_t *)rxiov.iov_base)[1]<<8);
+	pktlen += (((uint8_t *)rxiov.iov_base)[2]<<16);
+	pktlen += (((uint8_t *)rxiov.iov_base)[3]<<24);
+	return pktlen;
+}
+
+static int wait_rx_pollin(int rxfd)
+{
+	struct pollfd pfds[1] = {
+		{
+			.fd = rxfd,
+			.events = POLLIN|POLLPRI,
+		},
+	};
+
+	poll(pfds, 1, -1);
+	return 0;
+}
+
+static int pipe_net_rx(struct lkl_netdev *nd, struct iovec *iov, int cnt)
+{
+	struct lkl_netdev_pipe *nd_pipe =
+		container_of(nd, struct lkl_netdev_pipe, dev);
+	int read_len = 0;
+	int ret, iovlen, pktlen;
+	struct iovec work_iov[VIRTIO_REQ_MAX_BUFS];
+
+	if (cnt > VIRTIO_REQ_MAX_BUFS) {
+		fprintf(stderr, "rx iov array length exceeds\n");
+		return 0;
+	}
+
+	ret = read_next_pktlen(nd_pipe);
+	if (ret < 0)
+		return ret;
+	pktlen = ret;
+	iovlen = get_iovlen(iov, cnt);
+	copy_iov_info(iov, work_iov, cnt);
+
+	if (pktlen > iovlen) {
+		/*
+		 * discard packet
+		 * maybe should not use iov
+		 */
+		while (pktlen) {
+			if (get_iovlen(work_iov, cnt) > pktlen)
+				rx_adjust_len(pktlen, work_iov, cnt);
+
+			do {
+				ret = readv(nd_pipe->pipe_rx,
+						(struct iovec *)work_iov, cnt);
+			} while (ret == -1 && errno == EINTR);
+
+			if (ret < 0) {
+				if (errno != EAGAIN)
+					perror("read from pipe netdev fails");
+				wait_rx_pollin(nd_pipe->pipe_rx);
+			} else {
+				pktlen -= ret;
+			}
+		}
+
+		return iovlen;
+	}
+
+	rx_adjust_len(pktlen, work_iov, cnt);
+	while (read_len < pktlen) {
+		do {
+			ret = readv(nd_pipe->pipe_rx,
+					(struct iovec *)work_iov, cnt);
+		} while (ret == -1 && errno == EINTR);
+
+		if (ret < 0) {
+			if (errno != EAGAIN)
+				perror("write to pipe netdev fails");
+			wait_rx_pollin(nd_pipe->pipe_rx);
+		} else {
+			read_len += ret;
+			if (read_len == pktlen)
+				break;
+			rx_set_next(ret, work_iov, cnt);
+		}
+	}
+
+	return pktlen;
 }
 
 static int pipe_net_poll(struct lkl_netdev *nd)
