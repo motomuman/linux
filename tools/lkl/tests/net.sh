@@ -23,6 +23,9 @@ cleanup_backend()
         ;;
     "loopback")
         ;;
+    "slirp")
+        rm -rf $work_dir
+        ;;
     esac
 }
 
@@ -105,6 +108,15 @@ setup_backend()
             return $TEST_SKIP
         fi
         ;;
+    "slirp")
+        if [ -z $(lkl_test_cmd which slirp) ]; then
+            echo "no slirp command"
+            return $TEST_SKIP
+        else
+            work_dir=$(lkl_test_cmd mktemp -d)
+        fi
+        export_vars work_dir
+        ;;
     *)
         echo "don't know how to setup backend $1"
         return $TEST_FAILED
@@ -154,6 +166,16 @@ run_tests()
                       --ifname dpdk0 \
                       --ip $(ip_lkl) --netmask-len $TEST_IP_NETMASK \
                       --dst $(ip_host)
+        ;;
+    "slirp")
+	echo "11111" | HOME=$work_dir slirp socket 2>/dev/null
+
+        lkl_test_exec $script_dir/net-test --backend slirp \
+                      --ifname $work_dir/.slirp_socket \
+                      --ip 10.0.2.15 --netmask-len 24 \
+                      --dst 10.0.2.2
+
+	killall slirp
         ;;
     esac
 }

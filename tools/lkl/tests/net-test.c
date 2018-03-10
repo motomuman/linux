@@ -25,11 +25,12 @@ enum {
 	BACKEND_RAW,
 	BACKEND_DPDK,
 	BACKEND_PIPE,
+	BACKEND_SLIRP,
 	BACKEND_NONE,
 };
 
-const char *backends[] = { "tap", "macvtap", "raw", "dpdk", "pipe", "loopback",
-			   NULL };
+const char *backends[] = { "tap", "macvtap", "raw", "dpdk", "pipe", "slirp",
+			"loopback", NULL };
 static struct {
 	int backend;
 	const char *ifname;
@@ -190,6 +191,9 @@ static int lkl_test_nd_create(void)
 	case BACKEND_PIPE:
 		nd = lkl_netdev_pipe_create(cla.ifname, 0);
 		break;
+	case BACKEND_SLIRP:
+		nd = lkl_netdev_slirp_create(cla.ifname);
+		break;
 	}
 
 	if (!nd) {
@@ -257,6 +261,15 @@ static int lkl_test_set_ipv4(void)
 
 	if (cla.backend == BACKEND_NONE || cla.ip == LKL_INADDR_NONE)
 		return TEST_SKIP;
+
+	if (cla.backend == BACKEND_SLIRP) {
+		ret = lkl_netdev_ipencap_conf(nd_ifindex, nd);
+		if (ret < 0) {
+			lkl_test_logf("failed to configure ipencap: %s\n",
+					lkl_strerror(ret));
+			return TEST_BAILOUT;
+		}
+	}
 
 	ret = lkl_if_set_ipv4(nd_ifindex, cla.ip, cla.nmlen);
 	if (ret < 0) {

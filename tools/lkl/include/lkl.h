@@ -538,6 +538,22 @@ lkl_netdev_pipe_create(const char *ifname, int offload)
 }
 #endif
 
+/**
+ * lkl_netdev_slirp_create - create slirp net_device for the virtio
+ * net backend
+ *
+ * @path - a path for a slirp Unix-domain socket
+ */
+#ifdef LKL_HOST_CONFIG_VIRTIO_NET
+struct lkl_netdev *lkl_netdev_slirp_create(const char *path);
+#else
+static inline struct lkl_netdev *
+lkl_netdev_slirp_create(const char *path)
+{
+	return NULL;
+}
+#endif
+
 /*
  * lkl_register_dbg_handler- register a signal handler that loads a debug lib.
  *
@@ -667,6 +683,14 @@ int lkl_sysctl(const char *path, const char *value);
  * @sysctls - Configure sysctl parameters as the form of "key=value;..."
  */
 void lkl_sysctl_parse_write(const char *sysctls);
+
+/**
+ * lkl_netdev_ipencap_conf Configure ipencap for an interface
+ *
+ * @ifindex - the ifindex of the interface
+ * @nd - the network device to configure
+ */
+int lkl_netdev_ipencap_conf(int ifindex, struct lkl_netdev *nd);
 
 #ifdef __cplusplus
 }

@@ -658,6 +658,28 @@ test_vde_ping_lkl()
     run_hijack_cfg sleep 3
 }
 
+test_slirp_ping_gw()
+{
+    set -e
+
+    set_cfgjson << EOF
+    {
+        "interfaces":
+        [
+            {
+                "type":"slirp",
+                "param":"${wdir}/.slirp_socket",
+                "ip":"10.0.2.15",
+                "masklen":"24",
+            }
+        ]
+    }
+EOF
+    echo "111111" | HOME=${wdir} slirp socket
+    run_hijack_cfg ${ping} -c 1 10.0.2.2
+    killall slirp
+}
+
 source ${script_dir}/test.sh
 source ${script_dir}/net-setup.sh
 
@@ -756,4 +778,12 @@ else
     lkl_test_run 2 test_vde_ping_host
     lkl_test_run 3 test_vde_ping_lkl
     lkl_test_run 4 test_vde_cleanup
+fi
+
+if [ ! -x "$(which slirp)" ]; then
+    lkl_test_plan 0 "hijack slirp tests"
+    echo "could not find a slirp executable"
+else
+    lkl_test_plan 1 "hijack slirp tests"
+    lkl_test_run 1 test_slirp_ping_gw
 fi

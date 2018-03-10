@@ -279,6 +279,9 @@ static int lkl_hijack_netdev_create(struct lkl_config *cfg, int ifidx)
 			}
 			offload = 0;
 		}
+		if (strcmp(cfg->iftype[ifidx], "slirp") == 0)
+			nd[ifidx] =
+				lkl_netdev_slirp_create(cfg->ifparams[ifidx]);
 		if (strcmp(cfg->iftype[ifidx], "vde") == 0)
 			nd[ifidx] = lkl_netdev_vde_create(cfg->ifparams[ifidx]);
 		if (strcmp(cfg->iftype[ifidx], "raw") == 0)
@@ -336,6 +339,12 @@ static int lkl_hijack_netdev_configure(struct lkl_config *cfg, int ifidx)
 		if (ret < 0)
 			fprintf(stderr, "failed to set MTU: %s\n",
 					lkl_strerror(ret));
+	}
+
+	if (nd_ifindex >= 0 && nd[nd_id[ifidx]]->is_slirp) {
+		ret = lkl_netdev_ipencap_conf(nd_ifindex, nd[nd_id[ifidx]]);
+		if (ret < 0)
+			fprintf(stderr, "failed to configure ipencap\n");
 	}
 
 	if (nd_ifindex >= 0 && cfg->ifip[ifidx] && cfg->ifnetmask_len[ifidx]) {
