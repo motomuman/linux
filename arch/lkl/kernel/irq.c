@@ -10,6 +10,8 @@
 #include <asm/host_ops.h>
 #include <asm/cpu.h>
 
+#if 0
+
 /*
  * To avoid much overhead we use an indirect approach: the irqs are marked using
  * a bitmap (array of longs) and a summary of the modified bits is kept in a
@@ -188,4 +190,54 @@ void init_IRQ(void)
 void cpu_yield_to_irqs(void)
 {
 	cpu_relax();
+}
+
+#endif
+
+void set_irq_pending(int irq)
+{
+}
+
+
+/**
+ * This function can be called from arbitrary host threads, so do not
+ * issue any Linux calls (e.g. prink) if lkl_cpu_get() was not issued
+ * before.
+ */
+int lkl_trigger_irq(int irq)
+{
+	return 0;
+}
+
+void run_irqs(void)
+{
+}
+
+int show_interrupts(struct seq_file *p, void *v)
+{
+	return 0;
+}
+
+int lkl_get_free_irq(const char *user)
+{
+}
+
+void lkl_put_irq(int i, const char *user)
+{
+}
+
+unsigned long arch_local_save_flags(void)
+{
+}
+
+void arch_local_irq_restore(unsigned long flags)
+{
+}
+
+void init_IRQ(void)
+{
+}
+
+void cpu_yield_to_irqs(void)
+{
 }

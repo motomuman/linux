@@ -7,6 +7,7 @@
 #include <asm/sched.h>
 #include <asm/syscalls.h>
 
+#if 0
 
 /*
  * This structure is used to get access to the "LKL CPU" that allows us to run
@@ -220,5 +221,42 @@ int lkl_cpu_init(void)
 		return -ENOMEM;
 	}
 
+	return 0;
+}
+
+#endif
+
+void lkl_cpu_change_owner(lkl_thread_t owner)
+{
+}
+
+int lkl_cpu_get(void)
+{
+	return 0;
+}
+
+void lkl_cpu_put(void)
+{
+}
+
+int lkl_cpu_try_run_irq(int irq)
+{
+	return 0;
+}
+
+void lkl_cpu_shutdown(void)
+{
+}
+
+void lkl_cpu_wait_shutdown(void)
+{
+}
+
+void arch_cpu_idle(void)
+{
+}
+
+int lkl_cpu_init(void)
+{
 	return 0;
 }

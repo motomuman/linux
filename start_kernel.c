@@ -4,12 +4,11 @@
 
 int main(){
 	int ret;
-	ret = lkl_start_kernel(&lkl_host_ops, "");
+	ret = lkl_start_kernel(&lkl_host_ops);
 	if (ret) {
 		fprintf(stderr, "can't start kernel: %s\n", lkl_strerror(ret));
 		return 0;
 	} else {
 		fprintf(stderr, "started kernel\n");
 	}
-	lkl_sys_halt();
 }

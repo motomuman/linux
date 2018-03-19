@@ -450,7 +450,7 @@ int cpu_check_up_prepare(int cpu)
  */
 void cpu_set_state_online(int cpu)
 {
-	(void)atomic_xchg(&per_cpu(cpu_hotplug_state, cpu), CPU_ONLINE);
+	//(void)atomic_xchg(&per_cpu(cpu_hotplug_state, cpu), CPU_ONLINE);
 }
 
 #ifdef CONFIG_HOTPLUG_CPU

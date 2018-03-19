@@ -5,11 +5,11 @@
 #include <linux/err.h>
 #include <linux/sched.h>
 
-__printf(4, 5)
+//__printf(4, 5)
 struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
 					   void *data,
 					   int node,
-					   const char namefmt[], ...);
+					   const char namefmt[]);//, ...);
 
 /**
  * kthread_create - create a kthread on the current node
@@ -23,7 +23,7 @@ struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
  * see the documentation there for more details.
  */
 #define kthread_create(threadfn, data, namefmt, arg...) \
-	kthread_create_on_node(threadfn, data, NUMA_NO_NODE, namefmt, ##arg)
+	kthread_create_on_node(threadfn, data, NUMA_NO_NODE, namefmt)
 
 
 struct task_struct *kthread_create_on_cpu(int (*threadfn)(void *data),
@@ -172,13 +172,14 @@ extern void __kthread_init_worker(struct kthread_worker *worker,
 
 int kthread_worker_fn(void *worker_ptr);
 
-__printf(2, 3)
+//__printf(2, 3)
 struct kthread_worker *
-kthread_create_worker(unsigned int flags, const char namefmt[], ...);
+kthread_create_worker(unsigned int flags, const char namefmt[]);//, ...);
 
-__printf(3, 4) struct kthread_worker *
+//__printf(3, 4) 
+	struct kthread_worker *
 kthread_create_worker_on_cpu(int cpu, unsigned int flags,
-			     const char namefmt[], ...);
+			     const char namefmt[]);//, ...);
 
 bool kthread_queue_work(struct kthread_worker *worker,
 			struct kthread_work *work);

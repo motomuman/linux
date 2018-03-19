@@ -265,11 +265,11 @@ static void create_kthread(struct kthread_create_info *create)
 	}
 }
 
-static __printf(4, 0)
+//static __printf(4, 0)
 struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
 						    void *data, int node,
-						    const char namefmt[],
-						    va_list args)
+						    const char namefmt[])
+						    //va_list args)
 {
 	DECLARE_COMPLETION_ONSTACK(done);
 	struct task_struct *task;
@@ -311,7 +311,8 @@ struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
 	if (!IS_ERR(task)) {
 		static const struct sched_param param = { .sched_priority = 0 };
 
-		vsnprintf(task->comm, sizeof(task->comm), namefmt, args);
+		//vsnprintf(task->comm, sizeof(task->comm), namefmt, args);
+		strncpy(task->comm, namefmt, sizeof(task->comm));
 		/*
 		 * root may have changed our (kthreadd's) priority or CPU mask.
 		 * The kernel thread should not inherit these properties.
@@ -348,15 +349,14 @@ struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
  */
 struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
 					   void *data, int node,
-					   const char namefmt[],
-					   ...)
+					   const char namefmt[])
 {
 	struct task_struct *task;
-	va_list args;
+	//va_list args;
 
-	va_start(args, namefmt);
-	task = __kthread_create_on_node(threadfn, data, node, namefmt, args);
-	va_end(args);
+	//va_start(args, namefmt);
+	task = __kthread_create_on_node(threadfn, data, node, namefmt);//, args);
+	//va_end(args);
 
 	return task;
 }
@@ -420,8 +420,8 @@ struct task_struct *kthread_create_on_cpu(int (*threadfn)(void *data),
 {
 	struct task_struct *p;
 
-	p = kthread_create_on_node(threadfn, data, cpu_to_node(cpu), namefmt,
-				   cpu);
+	p = kthread_create_on_node(threadfn, data, cpu_to_node(cpu), namefmt);
+				   //cpu);
 	if (IS_ERR(p))
 		return p;
 	kthread_bind(p, cpu);
@@ -642,9 +642,10 @@ repeat:
 }
 EXPORT_SYMBOL_GPL(kthread_worker_fn);
 
-static __printf(3, 0) struct kthread_worker *
+static //__printf(3, 0) 
+	struct kthread_worker *
 __kthread_create_worker(int cpu, unsigned int flags,
-			const char namefmt[], va_list args)
+			const char namefmt[])//, va_list args)
 {
 	struct kthread_worker *worker;
 	struct task_struct *task;
@@ -660,7 +661,7 @@ __kthread_create_worker(int cpu, unsigned int flags,
 		node = cpu_to_node(cpu);
 
 	task = __kthread_create_on_node(kthread_worker_fn, worker,
-						node, namefmt, args);
+						node, namefmt);//, args);
 	if (IS_ERR(task))
 		goto fail_task;
 
@@ -687,14 +688,14 @@ fail_task:
  * when the worker was SIGKILLed.
  */
 struct kthread_worker *
-kthread_create_worker(unsigned int flags, const char namefmt[], ...)
+kthread_create_worker(unsigned int flags, const char namefmt[])//, ...)
 {
 	struct kthread_worker *worker;
 	va_list args;
 
-	va_start(args, namefmt);
-	worker = __kthread_create_worker(-1, flags, namefmt, args);
-	va_end(args);
+	//va_start(args, namefmt);
+	worker = __kthread_create_worker(-1, flags, namefmt);//, args);
+	//va_end(args);
 
 	return worker;
 }
@@ -719,14 +720,14 @@ EXPORT_SYMBOL(kthread_create_worker);
  */
 struct kthread_worker *
 kthread_create_worker_on_cpu(int cpu, unsigned int flags,
-			     const char namefmt[], ...)
+			     const char namefmt[])//, ...)
 {
 	struct kthread_worker *worker;
 	va_list args;
 
-	va_start(args, namefmt);
-	worker = __kthread_create_worker(cpu, flags, namefmt, args);
-	va_end(args);
+	//va_start(args, namefmt);
+	worker = __kthread_create_worker(cpu, flags, namefmt);//, args);
+	//va_end(args);
 
 	return worker;
 }

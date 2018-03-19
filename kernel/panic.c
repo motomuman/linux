@@ -109,6 +109,7 @@ atomic_t panic_cpu = ATOMIC_INIT(PANIC_CPU_INVALID);
  */
 void nmi_panic(struct pt_regs *regs, const char *msg)
 {
+	/*
 	int old_cpu, cpu;
 
 	cpu = raw_smp_processor_id();
@@ -118,9 +119,11 @@ void nmi_panic(struct pt_regs *regs, const char *msg)
 		panic("%s", msg);
 	else if (old_cpu != cpu)
 		nmi_panic_self_stop(regs);
+	*/
 }
 EXPORT_SYMBOL(nmi_panic);
 
+#if 0
 /**
  *	panic - halt the system
  *	@fmt: The text string to print
@@ -300,6 +303,8 @@ void panic(const char *fmt, ...)
 }
 
 EXPORT_SYMBOL(panic);
+
+#endif
 
 /*
  * TAINT_FORCED_RMMOD could be a per-module flag but the module

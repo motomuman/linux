@@ -549,7 +549,8 @@ asmlinkage __visible void __init start_kernel(void)
 	parse_early_param();
 	after_dashes = parse_args("Booting kernel",
 				  static_command_line, __start___param,
-				  __stop___param - __start___param,
+				  //__stop___param - __start___param,
+				  0,
 				  -1, -1, NULL, &unknown_bootoption);
 	if (!IS_ERR_OR_NULL(after_dashes))
 		parse_args("Setting init args", after_dashes, NULL, 0, -1, -1,
@@ -884,7 +885,8 @@ static void __init do_initcall_level(int level)
 	strcpy(initcall_command_line, saved_command_line);
 	parse_args(initcall_level_names[level],
 		   initcall_command_line, __start___param,
-		   __stop___param - __start___param,
+		   //__stop___param - __start___param,
+		   0,
 		   level, level,
 		   NULL, &repair_env_string);
 

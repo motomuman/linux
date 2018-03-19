@@ -22,7 +22,7 @@ static unsigned long mem_size = 64 * 1024 * 1024;
 
 long lkl_panic_blink(int state)
 {
-	lkl_ops->panic();
+	//lkl_ops->panic();
 	return 0;
 }
 
@@ -48,17 +48,18 @@ static void __init lkl_run_kernel(void *arg)
 	start_kernel();
 }
 
-int __init lkl_start_kernel(struct lkl_host_operations *ops,
-			const char *fmt, ...)
+int __init lkl_start_kernel(struct lkl_host_operations *ops)
+			//const char *fmt, ...)
 {
 	va_list ap;
 	int ret;
 
 	lkl_ops = ops;
 
-	va_start(ap, fmt);
-	ret = vsnprintf(boot_command_line, COMMAND_LINE_SIZE, fmt, ap);
-	va_end(ap);
+	//va_start(ap, fmt);
+	//ret = vsnprintf(boot_command_line, COMMAND_LINE_SIZE, fmt, ap);
+	//va_end(ap);
+	ret = 0;
 
 	if (ops->virtio_devices)
 		strncpy(boot_command_line + ret, ops->virtio_devices,

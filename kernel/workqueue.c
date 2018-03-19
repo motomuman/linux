@@ -588,7 +588,10 @@ static int get_work_color(struct work_struct *work)
 
 static int work_next_color(int color)
 {
-	return (color + 1) % WORK_NR_COLORS;
+	if(color + 1 >= WORK_NR_COLORS)
+		return color + 1 - WORK_NR_COLORS;
+	return color + 1;
+	//return (color + 1) % WORK_NR_COLORS;
 }
 
 /*
@@ -1777,7 +1780,7 @@ static struct worker *create_worker(struct worker_pool *pool)
 		snprintf(id_buf, sizeof(id_buf), "u%d:%d", pool->id, id);
 
 	worker->task = kthread_create_on_node(worker_thread, worker, pool->node,
-					      "kworker/%s", id_buf);
+					      "kworker/%s");//, id_buf);
 	if (IS_ERR(worker->task))
 		goto fail;
 
@@ -3959,7 +3962,7 @@ struct workqueue_struct *__alloc_workqueue_key(const char *fmt,
 					       unsigned int flags,
 					       int max_active,
 					       struct lock_class_key *key,
-					       const char *lock_name, ...)
+					       const char *lock_name)
 {
 	size_t tbl_size = 0;
 	va_list args;
@@ -3994,12 +3997,14 @@ struct workqueue_struct *__alloc_workqueue_key(const char *fmt,
 			goto err_free_wq;
 	}
 
+	/*
 	va_start(args, lock_name);
 	vsnprintf(wq->name, sizeof(wq->name), fmt, args);
 	va_end(args);
+	*/
 
 	max_active = max_active ?: WQ_DFL_ACTIVE;
-	max_active = wq_clamp_max_active(max_active, flags, wq->name);
+	max_active = wq_clamp_max_active(max_active, flags, fmt);
 
 	/* init wq */
 	wq->flags = flags;
@@ -4282,8 +4287,9 @@ EXPORT_SYMBOL_GPL(work_busy);
  * information will be printed out together to help debugging.  The
  * description can be at most WORKER_DESC_LEN including the trailing '\0'.
  */
-void set_worker_desc(const char *fmt, ...)
+void set_worker_desc(const char *fmt)//, ...)
 {
+	/*
 	struct worker *worker = current_wq_worker();
 	va_list args;
 
@@ -4293,6 +4299,7 @@ void set_worker_desc(const char *fmt, ...)
 		va_end(args);
 		worker->desc_valid = true;
 	}
+	*/
 }
 
 /**

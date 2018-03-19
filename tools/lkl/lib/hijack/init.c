@@ -482,7 +482,7 @@ hijack_init(void)
 	}
 #endif
 
-	ret = lkl_start_kernel(&lkl_host_ops, cfg->boot_cmdline);
+	ret = lkl_start_kernel(&lkl_host_ops);//, cfg->boot_cmdline);
 	if (ret) {
 		fprintf(stderr, "can't start kernel: %s\n", lkl_strerror(ret));
 		return;
