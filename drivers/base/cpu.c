@@ -416,7 +416,7 @@ __cpu_device_create(struct device *parent, void *drvdata,
 	dev->release = device_create_release;
 	dev_set_drvdata(dev, drvdata);
 
-	retval = kobject_set_name_vargs(&dev->kobj, fmt, args);
+	retval = kobject_set_name_vargs(&dev->kobj, fmt);
 	if (retval)
 		goto error;
 

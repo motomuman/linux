@@ -217,7 +217,7 @@ int misc_register(struct miscdevice *misc)
 
 	misc->this_device =
 		device_create_with_groups(misc_class, misc->parent, dev,
-					  misc, misc->groups, "%s", misc->name);
+					  misc, misc->groups, "misc->name");
 	if (IS_ERR(misc->this_device)) {
 		if (is_dynamic) {
 			int i = DYNAMIC_MINORS - misc->minor - 1;

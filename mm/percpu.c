@@ -1913,9 +1913,7 @@ static void pcpu_dump_alloc_info(const char *lvl,
 	width = upa * (cpu_width + 1) + group_width + 3;
 	apl = rounddown_pow_of_two(max(60 / width, 1));
 
-	printk("%spcpu-alloc: s%zu r%zu d%zu u%zu alloc=%zu*%zu",
-	       lvl, ai->static_size, ai->reserved_size, ai->dyn_size,
-	       ai->unit_size, ai->alloc_size / ai->atom_size, ai->atom_size);
+	printk("%spcpu-alloc: s%zu r%zu d%zu u%zu alloc=%zu*%zu");
 
 	for (group = 0; group < ai->nr_groups; group++) {
 		const struct pcpu_group_info *gi = &ai->groups[group];
@@ -1926,7 +1924,7 @@ static void pcpu_dump_alloc_info(const char *lvl,
 		     alloc < alloc_end; alloc++) {
 			if (!(alloc % apl)) {
 				pr_cont("\n");
-				printk("%spcpu-alloc: ", lvl);
+				printk("%spcpu-alloc: ");
 			}
 			pr_cont("[%0*d] ", group_width, group);
 

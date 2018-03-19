@@ -98,7 +98,7 @@ static int find_components(struct master *master)
 		struct component_match_array *mc = &match->compare[i];
 		struct component *c;
 
-		dev_dbg(master->dev, "Looking for component %zu\n", i);
+		dev_dbg(master->dev, "Looking for component %zu\n");
 
 		if (match->compare[i].component)
 			continue;
@@ -109,7 +109,7 @@ static int find_components(struct master *master)
 			break;
 		}
 
-		dev_dbg(master->dev, "found component %s, duplicate %u\n", dev_name(c->dev), !!c->master);
+		dev_dbg(master->dev, "found component %s, duplicate %u\n");
 
 		/* Attach this component to the master */
 		match->compare[i].duplicate = !!c->master;
@@ -150,8 +150,7 @@ static int try_to_bring_up_master(struct master *master,
 	}
 
 	if (component && component->master != master) {
-		dev_dbg(master->dev, "master is not for this component (%s)\n",
-			dev_name(component->dev));
+		dev_dbg(master->dev, "master is not for this component (%s)\n");
 		return 0;
 	}
 
@@ -162,7 +161,7 @@ static int try_to_bring_up_master(struct master *master,
 	ret = master->ops->bind(master->dev);
 	if (ret < 0) {
 		devres_release_group(master->dev, NULL);
-		dev_info(master->dev, "master bind failed: %d\n", ret);
+		dev_info(master->dev, "master bind failed: %d\n");
 		return ret;
 	}
 
@@ -409,8 +408,7 @@ static int component_bind(struct component *component, struct master *master,
 		return -ENOMEM;
 	}
 
-	dev_dbg(master->dev, "binding %s (ops %ps)\n",
-		dev_name(component->dev), component->ops);
+	dev_dbg(master->dev, "binding %s (ops %ps)\n");
 
 	ret = component->ops->bind(component->dev, master->dev, data);
 	if (!ret) {
@@ -425,14 +423,12 @@ static int component_bind(struct component *component, struct master *master,
 		devres_close_group(component->dev, NULL);
 		devres_remove_group(master->dev, NULL);
 
-		dev_info(master->dev, "bound %s (ops %ps)\n",
-			 dev_name(component->dev), component->ops);
+		dev_info(master->dev, "bound %s (ops %ps)\n");
 	} else {
 		devres_release_group(component->dev, NULL);
 		devres_release_group(master->dev, NULL);
 
-		dev_err(master->dev, "failed to bind %s (ops %ps): %d\n",
-			dev_name(component->dev), component->ops, ret);
+		dev_err(master->dev, "failed to bind %s (ops %ps): %d\n");
 	}
 
 	return ret;
@@ -484,7 +480,7 @@ int component_add(struct device *dev, const struct component_ops *ops)
 	component->ops = ops;
 	component->dev = dev;
 
-	dev_dbg(dev, "adding component (ops %ps)\n", ops);
+	dev_dbg(dev, "adding component (ops %ps)\n");
 
 	mutex_lock(&component_mutex);
 	list_add_tail(&component->node, &component_list);

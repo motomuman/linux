@@ -11,6 +11,14 @@
 
 #define DEBUG		/* Enable initcall_debug */
 
+#include <generated/compile.h>
+#include <linux/module.h>
+#include <linux/uts.h>
+#include <linux/utsname.h>
+#include <generated/utsrelease.h>
+#include <generated/utsrelease.h>
+#include <linux/version.h>
+
 #include <linux/types.h>
 #include <linux/extable.h>
 #include <linux/module.h>
@@ -185,8 +193,7 @@ static bool __init obsolete_checksetup(char *line)
 				if (line[n] == '\0' || line[n] == '=')
 					had_early_param = true;
 			} else if (!p->setup_func) {
-				pr_warn("Parameter %s is obsolete, ignored\n",
-					p->str);
+				pr_warn("Parameter hoge is obsolete, ignored\n");
 				return true;
 			} else if (p->setup_func(line + n))
 				return true;
@@ -447,7 +454,7 @@ static int __init do_early_param(char *param, char *val,
 		     strcmp(p->str, "earlycon") == 0)
 		) {
 			if (p->setup_func(val) != 0)
-				pr_warn("Malformed early option '%s'\n", param);
+				pr_warn("Malformed early option 'hoge'\n");
 		}
 	}
 	/* We accept everything at this stage. */
@@ -526,7 +533,8 @@ asmlinkage __visible void __init start_kernel(void)
 	 */
 	boot_cpu_init();
 	page_address_init();
-	pr_notice("%s", linux_banner);
+	printk("Linux version " UTS_RELEASE " (" LINUX_COMPILE_BY "@" LINUX_COMPILE_HOST ") (" LINUX_COMPILER ") " UTS_VERSION "\n");
+	pr_notice("Linux version hoge\n");
 	setup_arch(&command_line);
 	/*
 	 * Set up the the initial canary and entropy after arch
@@ -545,7 +553,7 @@ asmlinkage __visible void __init start_kernel(void)
 	build_all_zonelists(NULL);
 	page_alloc_init();
 
-	pr_notice("Kernel command line: %s\n", boot_command_line);
+	pr_notice("Kernel command line: hoge\n");
 	parse_early_param();
 	after_dashes = parse_args("Booting kernel",
 				  static_command_line, __start___param,
@@ -742,7 +750,7 @@ static int __init initcall_blacklist(char *str)
 	do {
 		str_entry = strsep(&str, ",");
 		if (str_entry) {
-			pr_debug("blacklisting initcall %s\n", str_entry);
+			pr_debug("blacklisting initcall hoge\n");
 			entry = alloc_bootmem(sizeof(*entry));
 			entry->buf = alloc_bootmem(strlen(str_entry) + 1);
 			strcpy(entry->buf, str_entry);
@@ -773,7 +781,7 @@ static bool __init_or_module initcall_blacklisted(initcall_t fn)
 
 	list_for_each_entry(entry, &blacklisted_initcalls, next) {
 		if (!strcmp(fn_name, entry->buf)) {
-			pr_debug("initcall %s blacklisted\n", fn_name);
+			pr_debug("initcall hoge blacklisted\n");
 			return true;
 		}
 	}
@@ -800,14 +808,13 @@ static int __init_or_module do_one_initcall_debug(initcall_t fn)
 	unsigned long long duration;
 	int ret;
 
-	printk(KERN_DEBUG "calling  %pF @ %i\n", fn, task_pid_nr(current));
+	printk(KERN_DEBUG "calling  hoge (do_one_initcall_debug)\n");
 	calltime = ktime_get();
 	ret = fn();
 	rettime = ktime_get();
 	delta = ktime_sub(rettime, calltime);
 	duration = (unsigned long long) ktime_to_ns(delta) >> 10;
-	printk(KERN_DEBUG "initcall %pF returned %d after %lld usecs\n",
-		 fn, ret, duration);
+	printk(KERN_DEBUG "initcall hoge returned hoge after hoge usecs\n");
 
 	return ret;
 }

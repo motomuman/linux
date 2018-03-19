@@ -338,15 +338,10 @@ static bool sanity(const struct iov_iter *i)
 	}
 	return true;
 Bad:
-	printk(KERN_ERR "idx = %d, offset = %zd\n", i->idx, i->iov_offset);
-	printk(KERN_ERR "curbuf = %d, nrbufs = %d, buffers = %d\n",
-			pipe->curbuf, pipe->nrbufs, pipe->buffers);
+	printk(KERN_ERR "idx = %d, offset = %zd\n");
+	printk(KERN_ERR "curbuf = %d, nrbufs = %d, buffers = %d\n");
 	for (idx = 0; idx < pipe->buffers; idx++)
-		printk(KERN_ERR "[%p %p %d %d]\n",
-			pipe->bufs[idx].ops,
-			pipe->bufs[idx].page,
-			pipe->bufs[idx].offset,
-			pipe->bufs[idx].len);
+		printk(KERN_ERR "[pipe buf%p %p %d %d]\n");
 	WARN_ON(1);
 	return false;
 }

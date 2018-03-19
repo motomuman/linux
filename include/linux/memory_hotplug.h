@@ -264,7 +264,8 @@ static inline void zone_seqlock_init(struct zone *zone) {}
 
 static inline int mhp_notimplemented(const char *func)
 {
-	printk(KERN_WARNING "%s() called, with CONFIG_MEMORY_HOTPLUG disabled\n", func);
+	//printk(KERN_WARNING func);
+	printk(KERN_WARNING "func called, with CONFIG_MEMORY_HOTPLUG disabled\n");
 	dump_stack();
 	return -ENOSYS;
 }

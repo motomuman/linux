@@ -147,6 +147,12 @@ config SCSI_MOD
 config HID_GENERIC
        def_bool n
 
+config HID 
+	def_bool n
+
+config HWMON
+	def_bool n
+
 config MQ_IOSCHED_DEADLINE
        def_bool n
 

@@ -1,4 +1,4 @@
-#define pr_fmt(fmt) "%s: " fmt "\n", __func__
+#define pr_fmt(fmt) "percpuref: " fmt "\n"
 
 #include <linux/kernel.h>
 #include <linux/sched.h>

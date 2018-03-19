@@ -159,7 +159,7 @@ int __class_register(struct class *cls, struct lock_class_key *key)
 	INIT_LIST_HEAD(&cp->interfaces);
 	kset_init(&cp->glue_dirs);
 	__mutex_init(&cp->mutex, "subsys mutex", key);
-	error = kobject_set_name(&cp->subsys.kobj, "%s", cls->name);
+	error = kobject_set_name(&cp->subsys.kobj, "cls->name");
 	if (error) {
 		kfree(cp);
 		return error;

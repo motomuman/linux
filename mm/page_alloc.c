@@ -4526,7 +4526,7 @@ unsigned long nr_free_pagecache_pages(void)
 static inline void show_node(struct zone *zone)
 {
 	if (IS_ENABLED(CONFIG_NUMA))
-		printk("Node %d ", zone_to_nid(zone));
+		printk("Node ");
 }
 
 long si_mem_available(void)
@@ -4665,7 +4665,6 @@ static void show_migration_types(unsigned char type)
 	}
 
 	*p = '\0';
-	printk(KERN_CONT "(%s) ", tmp);
 }
 
 /*
@@ -4697,26 +4696,7 @@ void show_free_areas(unsigned int filter, nodemask_t *nodemask)
 		" unevictable:%lu dirty:%lu writeback:%lu unstable:%lu\n"
 		" slab_reclaimable:%lu slab_unreclaimable:%lu\n"
 		" mapped:%lu shmem:%lu pagetables:%lu bounce:%lu\n"
-		" free:%lu free_pcp:%lu free_cma:%lu\n",
-		global_node_page_state(NR_ACTIVE_ANON),
-		global_node_page_state(NR_INACTIVE_ANON),
-		global_node_page_state(NR_ISOLATED_ANON),
-		global_node_page_state(NR_ACTIVE_FILE),
-		global_node_page_state(NR_INACTIVE_FILE),
-		global_node_page_state(NR_ISOLATED_FILE),
-		global_node_page_state(NR_UNEVICTABLE),
-		global_node_page_state(NR_FILE_DIRTY),
-		global_node_page_state(NR_WRITEBACK),
-		global_node_page_state(NR_UNSTABLE_NFS),
-		global_node_page_state(NR_SLAB_RECLAIMABLE),
-		global_node_page_state(NR_SLAB_UNRECLAIMABLE),
-		global_node_page_state(NR_FILE_MAPPED),
-		global_node_page_state(NR_SHMEM),
-		global_zone_page_state(NR_PAGETABLE),
-		global_zone_page_state(NR_BOUNCE),
-		global_zone_page_state(NR_FREE_PAGES),
-		free_pcp,
-		global_zone_page_state(NR_FREE_CMA_PAGES));
+		" free:%lu free_pcp:%lu free_cma:%lu\n");
 
 	for_each_online_pgdat(pgdat) {
 		if (show_mem_node_skip(filter, pgdat->node_id, nodemask))
@@ -4742,29 +4722,7 @@ void show_free_areas(unsigned int filter, nodemask_t *nodemask)
 			" writeback_tmp:%lukB"
 			" unstable:%lukB"
 			" all_unreclaimable? %s"
-			"\n",
-			pgdat->node_id,
-			K(node_page_state(pgdat, NR_ACTIVE_ANON)),
-			K(node_page_state(pgdat, NR_INACTIVE_ANON)),
-			K(node_page_state(pgdat, NR_ACTIVE_FILE)),
-			K(node_page_state(pgdat, NR_INACTIVE_FILE)),
-			K(node_page_state(pgdat, NR_UNEVICTABLE)),
-			K(node_page_state(pgdat, NR_ISOLATED_ANON)),
-			K(node_page_state(pgdat, NR_ISOLATED_FILE)),
-			K(node_page_state(pgdat, NR_FILE_MAPPED)),
-			K(node_page_state(pgdat, NR_FILE_DIRTY)),
-			K(node_page_state(pgdat, NR_WRITEBACK)),
-			K(node_page_state(pgdat, NR_SHMEM)),
-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-			K(node_page_state(pgdat, NR_SHMEM_THPS) * HPAGE_PMD_NR),
-			K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)
-					* HPAGE_PMD_NR),
-			K(node_page_state(pgdat, NR_ANON_THPS) * HPAGE_PMD_NR),
-#endif
-			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
-			K(node_page_state(pgdat, NR_UNSTABLE_NFS)),
-			pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES ?
-				"yes" : "no");
+			"\n");
 	}
 
 	for_each_populated_zone(zone) {
@@ -4799,30 +4757,10 @@ void show_free_areas(unsigned int filter, nodemask_t *nodemask)
 			" free_pcp:%lukB"
 			" local_pcp:%ukB"
 			" free_cma:%lukB"
-			"\n",
-			zone->name,
-			K(zone_page_state(zone, NR_FREE_PAGES)),
-			K(min_wmark_pages(zone)),
-			K(low_wmark_pages(zone)),
-			K(high_wmark_pages(zone)),
-			K(zone_page_state(zone, NR_ZONE_ACTIVE_ANON)),
-			K(zone_page_state(zone, NR_ZONE_INACTIVE_ANON)),
-			K(zone_page_state(zone, NR_ZONE_ACTIVE_FILE)),
-			K(zone_page_state(zone, NR_ZONE_INACTIVE_FILE)),
-			K(zone_page_state(zone, NR_ZONE_UNEVICTABLE)),
-			K(zone_page_state(zone, NR_ZONE_WRITE_PENDING)),
-			K(zone->present_pages),
-			K(zone->managed_pages),
-			K(zone_page_state(zone, NR_MLOCK)),
-			zone_page_state(zone, NR_KERNEL_STACK_KB),
-			K(zone_page_state(zone, NR_PAGETABLE)),
-			K(zone_page_state(zone, NR_BOUNCE)),
-			K(free_pcp),
-			K(this_cpu_read(zone->pageset->pcp.count)),
-			K(zone_page_state(zone, NR_FREE_CMA_PAGES)));
+			"\n");
 		printk("lowmem_reserve[]:");
 		for (i = 0; i < MAX_NR_ZONES; i++)
-			printk(KERN_CONT " %ld", zone->lowmem_reserve[i]);
+			printk(KERN_CONT " zone->lowmem_reserve[i]");
 		printk(KERN_CONT "\n");
 	}
 
@@ -4834,7 +4772,7 @@ void show_free_areas(unsigned int filter, nodemask_t *nodemask)
 		if (show_mem_node_skip(filter, zone_to_nid(zone), nodemask))
 			continue;
 		show_node(zone);
-		printk(KERN_CONT "%s: ", zone->name);
+		printk(KERN_CONT "zone->name");
 
 		spin_lock_irqsave(&zone->lock, flags);
 		for (order = 0; order < MAX_ORDER; order++) {
@@ -4852,17 +4790,16 @@ void show_free_areas(unsigned int filter, nodemask_t *nodemask)
 		}
 		spin_unlock_irqrestore(&zone->lock, flags);
 		for (order = 0; order < MAX_ORDER; order++) {
-			printk(KERN_CONT "%lu*%lukB ",
-			       nr[order], K(1UL) << order);
+			printk(KERN_CONT "%lu*%lukB ");
 			if (nr[order])
 				show_migration_types(types[order]);
 		}
-		printk(KERN_CONT "= %lukB\n", K(total));
+		printk(KERN_CONT "= \n");
 	}
 
 	hugetlb_show_meminfo();
 
-	printk("%ld total pagecache pages\n", global_node_page_state(NR_FILE_PAGES));
+	printk("%ld total pagecache pages\n");
 
 	show_swap_cache_info();
 }
@@ -5558,9 +5495,7 @@ static __meminit void zone_pcp_init(struct zone *zone)
 	zone->pageset = &boot_pageset;
 
 	if (populated_zone(zone))
-		printk(KERN_DEBUG "  %s zone: %lu pages, LIFO batch:%u\n",
-			zone->name, zone->present_pages,
-					 zone_batchsize(zone));
+		printk(KERN_DEBUG "  %s zone: %lu pages, LIFO batch:%u\n");
 }
 
 void __meminit init_currently_empty_zone(struct zone *zone,
@@ -5574,10 +5509,7 @@ void __meminit init_currently_empty_zone(struct zone *zone,
 	zone->zone_start_pfn = zone_start_pfn;
 
 	mminit_dprintk(MMINIT_TRACE, "memmap_init",
-			"Initialising map node %d zone %lu pfns %lu -> %lu\n",
-			pgdat->node_id,
-			(unsigned long)zone_idx(zone),
-			zone_start_pfn, (zone_start_pfn + size));
+			"Initialising map node %d zone %lu pfns %lu -> %lu\n");
 
 	zone_init_free_lists(zone);
 	zone->initialized = 1;
@@ -5927,8 +5859,7 @@ static void __meminit calculate_node_totalpages(struct pglist_data *pgdat,
 
 	pgdat->node_spanned_pages = totalpages;
 	pgdat->node_present_pages = realtotalpages;
-	printk(KERN_DEBUG "On node %d totalpages: %lu\n", pgdat->node_id,
-							realtotalpages);
+	printk(KERN_DEBUG "On node %d totalpages: %lu\n");
 }
 
 #ifndef CONFIG_SPARSEMEM
@@ -6080,18 +6011,15 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat)
 				freesize -= memmap_pages;
 				if (memmap_pages)
 					printk(KERN_DEBUG
-					       "  %s zone: %lu pages used for memmap\n",
-					       zone_names[j], memmap_pages);
+					       "  %s zone: %lu pages used for memmap\n");
 			} else
-				pr_warn("  %s zone: %lu pages exceeds freesize %lu\n",
-					zone_names[j], memmap_pages, freesize);
+				pr_warn("  %s zone: %lu pages exceeds freesize %lu\n");
 		}
 
 		/* Account for reserved pages */
 		if (j == 0 && freesize > dma_reserve) {
 			freesize -= dma_reserve;
-			printk(KERN_DEBUG "  %s zone: %lu pages reserved\n",
-					zone_names[0], dma_reserve);
+			printk(KERN_DEBUG "  %s zone: %lu pages reserved\n");
 		}
 
 		if (!is_highmem_idx(j))
@@ -6198,9 +6126,7 @@ void __paginginit free_area_init_node(int nid, unsigned long *zones_size,
 
 	alloc_node_mem_map(pgdat);
 #ifdef CONFIG_FLAT_NODE_MEM_MAP
-	printk(KERN_DEBUG "free_area_init_node: node %d, pgdat %08lx, node_mem_map %08lx\n",
-		nid, (unsigned long)pgdat,
-		(unsigned long)pgdat->node_mem_map);
+	printk(KERN_DEBUG "free_area_init_node: node %d, pgdat %08lx, node_mem_map %08lx\n");
 #endif
 
 	reset_deferred_meminit(pgdat);

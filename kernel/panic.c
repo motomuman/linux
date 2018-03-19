@@ -534,7 +534,7 @@ void __warn(const char *file, int line, void *caller, unsigned taint,
 			raw_smp_processor_id(), current->pid, caller);
 
 	if (args)
-		vprintk(args->fmt, args->args);
+		vprintk(args->fmt);
 
 	if (panic_on_warn) {
 		/*

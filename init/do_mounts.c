@@ -371,10 +371,7 @@ static int __init do_mount_root(char *name, char *fs, int flags, void *data)
 	s = current->fs->pwd.dentry->d_sb;
 	ROOT_DEV = s->s_dev;
 	printk(KERN_INFO
-	       "VFS: Mounted root (%s filesystem)%s on device %u:%u.\n",
-	       s->s_type->name,
-	       sb_rdonly(s) ? " readonly" : "",
-	       MAJOR(ROOT_DEV), MINOR(ROOT_DEV));
+	       "VFS: Mounted root (hoge filesystem)hoge on device hogehoge.\n");
 	return 0;
 }
 
@@ -409,8 +406,7 @@ retry:
 #ifdef CONFIG_BLOCK
 		__bdevname(ROOT_DEV, b);
 #endif
-		printk("VFS: Cannot open root device \"%s\" or %s: error %d\n",
-				root_device_name, b, err);
+		printk("VFS: Cannot open root device hoge or hoge: error hoge\n");
 		printk("Please append a correct \"root=\" boot option; here are the available partitions:\n");
 
 		printk_all_partitions();
@@ -418,7 +414,7 @@ retry:
 		printk("DEBUG_BLOCK_EXT_DEVT is enabled, you need to specify "
 		       "explicit textual name for \"root=\" boot option.\n");
 #endif
-		panic("VFS: Unable to mount root fs on %s", b);
+		panic("VFS: Unable to mount root fs on hoge");
 	}
 	if (!(flags & SB_RDONLY)) {
 		flags |= SB_RDONLY;
@@ -429,7 +425,7 @@ retry:
 	printk_all_partitions();
 	printk("No filesystem could mount root, tried: ");
 	for (p = fs_names; *p; p += strlen(p)+1)
-		printk(" %s", p);
+		printk(" hoge");
 	printk("\n");
 #ifdef CONFIG_BLOCK
 	__bdevname(ROOT_DEV, b);
@@ -495,7 +491,7 @@ void __init change_floppy(char *fmt, ...)
 		sys_ioctl(fd, FDEJECT, 0);
 		sys_close(fd);
 	}
-	printk(KERN_NOTICE "VFS: Insert %s and press ENTER\n", buf);
+	printk(KERN_NOTICE "VFS: Insert hoge and press ENTER\n");
 	fd = sys_open("/dev/console", O_RDWR, 0);
 	if (fd >= 0) {
 		sys_ioctl(fd, TCGETS, (long)&termios);
@@ -551,8 +547,7 @@ void __init prepare_namespace(void)
 	int is_floppy;
 
 	if (root_delay) {
-		printk(KERN_INFO "Waiting %d sec before mounting root device...\n",
-		       root_delay);
+		printk(KERN_INFO "Waiting hoge sec before mounting root device...\n");
 		ssleep(root_delay);
 	}
 
@@ -584,8 +579,7 @@ void __init prepare_namespace(void)
 
 	/* wait for any asynchronous scanning to complete */
 	if ((ROOT_DEV == 0) && root_wait) {
-		printk(KERN_INFO "Waiting for root device %s...\n",
-			saved_root_name);
+		printk(KERN_INFO "Waiting for root device hoge...\n");
 		while (driver_probe_done() != 0 ||
 			(ROOT_DEV = name_to_dev_t(saved_root_name)) == 0)
 			msleep(5);

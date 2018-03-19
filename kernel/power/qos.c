@@ -701,8 +701,7 @@ static int __init pm_qos_power_init(void)
 	for (i = PM_QOS_CPU_DMA_LATENCY; i < PM_QOS_NUM_CLASSES; i++) {
 		ret = register_pm_qos_misc(pm_qos_array[i], d);
 		if (ret < 0) {
-			printk(KERN_ERR "pm_qos_param: %s setup failed\n",
-			       pm_qos_array[i]->name);
+			printk(KERN_ERR "pm_qos_param: hoge setup failed\n");
 			return ret;
 		}
 	}

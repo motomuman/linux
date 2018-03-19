@@ -2042,9 +2042,7 @@ static noinline void block_dump___mark_inode_dirty(struct inode *inode)
 			name = (const char *) dentry->d_name.name;
 		}
 		printk(KERN_DEBUG
-		       "%s(%d): dirtied inode %lu (%s) on %s\n",
-		       current->comm, task_pid_nr(current), inode->i_ino,
-		       name, inode->i_sb->s_id);
+		       "%s(%d): dirtied inode %lu (%s) on %s\n");
 		if (dentry) {
 			spin_unlock(&dentry->d_lock);
 			dput(dentry);

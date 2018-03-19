@@ -1524,8 +1524,7 @@ out:
 		 * leave kernel.
 		 */
 		if (p->mm && printk_ratelimit()) {
-			printk_deferred("process %d (%s) no longer affine to cpu%d\n",
-					task_pid_nr(p), p->comm, cpu);
+			printk_deferred("process no longer affine to cpu\n");
 		}
 	}
 
@@ -3151,8 +3150,7 @@ static noinline void __schedule_bug(struct task_struct *prev)
 	if (oops_in_progress)
 		return;
 
-	printk(KERN_ERR "BUG: scheduling while atomic: %s/%d/0x%08x\n",
-		prev->comm, prev->pid, preempt_count());
+	printk(KERN_ERR "BUG: scheduling while atomic: \n");
 
 	debug_show_held_locks(prev);
 	print_modules();
@@ -5145,7 +5143,7 @@ void sched_show_task(struct task_struct *p)
 	if (!try_get_task_stack(p))
 		return;
 
-	printk(KERN_INFO "%-15.15s %c", p->comm, task_state_to_char(p));
+	printk(KERN_INFO "shcd show task");
 
 	if (p->state == TASK_RUNNING)
 		printk(KERN_CONT "  running task    ");
@@ -5157,9 +5155,7 @@ void sched_show_task(struct task_struct *p)
 	if (pid_alive(p))
 		ppid = task_pid_nr(rcu_dereference(p->real_parent));
 	rcu_read_unlock();
-	printk(KERN_CONT "%5lu %5d %6d 0x%08lx\n", free,
-		task_pid_nr(p), ppid,
-		(unsigned long)task_thread_info(p)->flags);
+	printk(KERN_CONT "%hogehoge\n");
 
 	print_worker_info(KERN_INFO, p);
 	show_stack(p, NULL);
@@ -6015,12 +6011,9 @@ void ___might_sleep(const char *file, int line, int preempt_offset)
 	preempt_disable_ip = get_preempt_disable_ip(current);
 
 	printk(KERN_ERR
-		"BUG: sleeping function called from invalid context at %s:%d\n",
-			file, line);
+		"BUG: sleeping function called from invalid context at %s:%d\n");
 	printk(KERN_ERR
-		"in_atomic(): %d, irqs_disabled(): %d, pid: %d, name: %s\n",
-			in_atomic(), irqs_disabled(),
-			current->pid, current->comm);
+		"in_atomic(): %d, irqs_disabled(): %d, pid: %d, name: %s\n");
 
 	if (task_stack_end_corrupted(current))
 		printk(KERN_EMERG "Thread overran stack, or stack corrupted\n");

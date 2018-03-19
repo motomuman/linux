@@ -49,8 +49,7 @@ int ___ratelimit(struct ratelimit_state *rs, const char *func)
 		if (rs->missed) {
 			if (!(rs->flags & RATELIMIT_MSG_ON_RELEASE)) {
 				printk_deferred(KERN_WARNING
-						"%s: %d callbacks suppressed\n",
-						func, rs->missed);
+						"%s: %d callbacks suppressed\n");
 				rs->missed = 0;
 			}
 		}

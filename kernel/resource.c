@@ -286,7 +286,7 @@ static void __release_child_resources(struct resource *r)
 		tmp->sibling = NULL;
 		__release_child_resources(tmp);
 
-		printk(KERN_DEBUG "release child resource %pR\n", tmp);
+		printk(KERN_DEBUG "release child resource hoge\n");
 		/* need to restore size, and keep flags */
 		size = resource_size(tmp);
 		tmp->start = 0;
@@ -906,7 +906,7 @@ void insert_resource_expand_to_fit(struct resource *root, struct resource *new)
 		if (conflict->end > new->end)
 			new->end = conflict->end;
 
-		printk("Expanded resource %s due to conflict with %s\n", new->name, conflict->name);
+		printk("Expanded resource hoge due to conflict with hoge\n");
 	}
 	write_unlock(&resource_lock);
 }
@@ -1218,9 +1218,7 @@ void __release_region(struct resource *parent, resource_size_t start,
 
 	write_unlock(&resource_lock);
 
-	printk(KERN_WARNING "Trying to free nonexistent resource "
-		"<%016llx-%016llx>\n", (unsigned long long)start,
-		(unsigned long long)end);
+	printk(KERN_WARNING "Trying to free nonexistent resource \n");
 }
 EXPORT_SYMBOL(__release_region);
 
@@ -1369,8 +1367,7 @@ int devm_request_resource(struct device *dev, struct resource *root,
 
 	conflict = request_resource_conflict(root, new);
 	if (conflict) {
-		dev_err(dev, "resource collision: %pR conflicts with %s %pR\n",
-			new, conflict->name, conflict);
+		dev_err(dev, "resource collision: %pR conflicts with %s %pR\n");
 		devres_free(ptr);
 		return -EBUSY;
 	}
@@ -1525,10 +1522,7 @@ int iomem_map_sanity_check(resource_size_t addr, unsigned long size)
 		if (p->flags & IORESOURCE_BUSY)
 			continue;
 
-		printk(KERN_WARNING "resource sanity check: requesting [mem %#010llx-%#010llx], which spans more than %s %pR\n",
-		       (unsigned long long)addr,
-		       (unsigned long long)(addr + size - 1),
-		       p->name, p);
+		printk(KERN_WARNING "resource sanity check: requesting [mem hoge-hoge], which spans more than %s hoge\n");
 		err = -1;
 		break;
 	}

@@ -254,15 +254,14 @@ static int kobject_add_internal(struct kobject *kobj)
  * @fmt: format string used to build the name
  * @vargs: vargs to format the string.
  */
-int kobject_set_name_vargs(struct kobject *kobj, const char *fmt,
-				  va_list vargs)
+int kobject_set_name_vargs(struct kobject *kobj, const char *fmt)
 {
 	const char *s;
 
 	if (kobj->name && !fmt)
 		return 0;
 
-	s = kvasprintf_const(GFP_KERNEL, fmt, vargs);
+	s = kvasprintf_const(GFP_KERNEL, fmt);
 	if (!s)
 		return -ENOMEM;
 
@@ -297,14 +296,10 @@ int kobject_set_name_vargs(struct kobject *kobj, const char *fmt,
  * kobject to the system, you must call kobject_rename() in order to
  * change the name of the kobject.
  */
-int kobject_set_name(struct kobject *kobj, const char *fmt, ...)
+int kobject_set_name(struct kobject *kobj, const char *fmt)
 {
-	va_list vargs;
 	int retval;
-
-	va_start(vargs, fmt);
-	retval = kobject_set_name_vargs(kobj, fmt, vargs);
-	va_end(vargs);
+	retval = kobject_set_name_vargs(kobj, fmt);
 
 	return retval;
 }
@@ -337,7 +332,7 @@ void kobject_init(struct kobject *kobj, struct kobj_type *ktype)
 	if (kobj->state_initialized) {
 		/* do not error out as sometimes we can recover */
 		printk(KERN_ERR "kobject (%p): tried to init an initialized "
-		       "object, something is seriously wrong.\n", kobj);
+		       "object, something is seriously wrong.\n");
 		dump_stack();
 	}
 
@@ -346,7 +341,7 @@ void kobject_init(struct kobject *kobj, struct kobj_type *ktype)
 	return;
 
 error:
-	printk(KERN_ERR "kobject (%p): %s\n", kobj, err_str);
+	printk(KERN_ERR "kobject (%p): %s\n");
 	dump_stack();
 }
 EXPORT_SYMBOL(kobject_init);
@@ -357,7 +352,7 @@ static __printf(3, 0) int kobject_add_varg(struct kobject *kobj,
 {
 	int retval;
 
-	retval = kobject_set_name_vargs(kobj, fmt, vargs);
+	retval = kobject_set_name_vargs(kobj, fmt);
 	if (retval) {
 		printk(KERN_ERR "kobject: can not set name properly!\n");
 		return retval;
@@ -402,8 +397,7 @@ int kobject_add(struct kobject *kobj, struct kobject *parent,
 
 	if (!kobj->state_initialized) {
 		printk(KERN_ERR "kobject '%s' (%p): tried to add an "
-		       "uninitialized object, something is seriously wrong.\n",
-		       kobject_name(kobj), kobj);
+		       "uninitialized object, something is seriously wrong.\n");
 		dump_stack();
 		return -EINVAL;
 	}
@@ -754,8 +748,7 @@ struct kobject *kobject_create_and_add(const char *name, struct kobject *parent)
 
 	retval = kobject_add(kobj, parent, "%s", name);
 	if (retval) {
-		printk(KERN_WARNING "%s: kobject_add error: %d\n",
-		       __func__, retval);
+		printk(KERN_WARNING "%s: kobject_add error: %d\n");
 		kobject_put(kobj);
 		kobj = NULL;
 	}
@@ -904,7 +897,7 @@ static struct kset *kset_create(const char *name,
 	kset = kzalloc(sizeof(*kset), GFP_KERNEL);
 	if (!kset)
 		return NULL;
-	retval = kobject_set_name(&kset->kobj, "%s", name);
+	retval = kobject_set_name(&kset->kobj, "kset_create_name");
 	if (retval) {
 		kfree(kset);
 		return NULL;

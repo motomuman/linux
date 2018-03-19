@@ -80,8 +80,7 @@ static void queue_flush_work(struct printk_safe_seq_buf *s)
  * happen, printk_safe_log_store() will notice the buffer->len mismatch
  * and repeat the write.
  */
-static __printf(2, 0) int printk_safe_log_store(struct printk_safe_seq_buf *s,
-						const char *fmt, va_list args)
+static int printk_safe_log_store(struct printk_safe_seq_buf *s, const char *fmt)
 {
 	int add;
 	size_t len;
@@ -103,7 +102,8 @@ again:
 	if (!len)
 		smp_rmb();
 
-	add = vscnprintf(s->buffer + len, sizeof(s->buffer) - len, fmt, args);
+	strncpy(s->buffer + len, fmt, sizeof(s->buffer) - len);
+	add = strlen(s->buffer+len);
 	if (!add)
 		return 0;
 
@@ -127,7 +127,7 @@ static inline void printk_safe_flush_line(const char *text, int len)
 	 * must go only into the ring buffer at this stage.  Consoles will
 	 * get explicitly called later when a crashdump is not generated.
 	 */
-	printk_deferred("%.*s", len, text);
+	printk_deferred("printk_safe_flush");
 }
 
 /* printk part of the temporary buffer line by line */
@@ -182,7 +182,7 @@ static void report_message_lost(struct printk_safe_seq_buf *s)
 	int lost = atomic_xchg(&s->message_lost, 0);
 
 	if (lost)
-		printk_deferred("Lost %d message(s)!\n", lost);
+		printk_deferred("Lost hoge message(s)!\n");
 }
 
 /*
@@ -299,11 +299,11 @@ void printk_safe_flush_on_panic(void)
  * one writer running. But the buffer might get flushed from another
  * CPU, so we need to be careful.
  */
-static __printf(1, 0) int vprintk_nmi(const char *fmt, va_list args)
+static int vprintk_nmi(const char *fmt)
 {
 	struct printk_safe_seq_buf *s = this_cpu_ptr(&nmi_print_seq);
 
-	return printk_safe_log_store(s, fmt, args);
+	return printk_safe_log_store(s, fmt);
 }
 
 void printk_nmi_enter(void)
@@ -330,7 +330,7 @@ void printk_nmi_exit(void)
 
 #else
 
-static __printf(1, 0) int vprintk_nmi(const char *fmt, va_list args)
+static int vprintk_nmi(const char *fmt)
 {
 	return 0;
 }
@@ -342,11 +342,11 @@ static __printf(1, 0) int vprintk_nmi(const char *fmt, va_list args)
  * into itself. It uses a per-CPU buffer to store the message, just like
  * NMI.
  */
-static __printf(1, 0) int vprintk_safe(const char *fmt, va_list args)
+static int vprintk_safe(const char *fmt)
 {
 	struct printk_safe_seq_buf *s = this_cpu_ptr(&safe_print_seq);
 
-	return printk_safe_log_store(s, fmt, args);
+	return printk_safe_log_store(s, fmt);
 }
 
 /* Can be preempted by NMI. */
@@ -361,25 +361,25 @@ void __printk_safe_exit(void)
 	this_cpu_dec(printk_context);
 }
 
-__printf(1, 0) int vprintk_func(const char *fmt, va_list args)
+int vprintk_func(const char *fmt)
 {
 	/* Use extra buffer in NMI when logbuf_lock is taken or in safe mode. */
 	if (this_cpu_read(printk_context) & PRINTK_NMI_CONTEXT_MASK)
-		return vprintk_nmi(fmt, args);
+		return vprintk_nmi(fmt);
 
 	/* Use extra buffer to prevent a recursion deadlock in safe mode. */
 	if (this_cpu_read(printk_context) & PRINTK_SAFE_CONTEXT_MASK)
-		return vprintk_safe(fmt, args);
+		return vprintk_safe(fmt);
 
 	/*
 	 * Use the main logbuf when logbuf_lock is available in NMI.
 	 * But avoid calling console drivers that might have their own locks.
 	 */
 	if (this_cpu_read(printk_context) & PRINTK_NMI_DEFERRED_CONTEXT_MASK)
-		return vprintk_deferred(fmt, args);
+		return vprintk_deferred(fmt);
 
 	/* No obstacles. */
-	return vprintk_default(fmt, args);
+	return vprintk_default(fmt);
 }
 
 void __init printk_safe_init(void)

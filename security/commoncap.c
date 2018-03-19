@@ -31,6 +31,7 @@
 #include <linux/binfmts.h>
 #include <linux/personality.h>
 
+
 /*
  * If a non-root user executes a setuid-root binary in
  * !secure(SECURE_NOROOT) mode, then we raise capabilities.
@@ -48,7 +49,7 @@ static void warn_setuid_and_fcaps_mixed(const char *fname)
 	if (!warned) {
 		printk(KERN_INFO "warning: `%s' has both setuid-root and"
 			" effective capabilities. Therefore not raising all"
-			" capabilities.\n", fname);
+			" capabilities.\n");
 		warned = 1;
 	}
 }
@@ -677,8 +678,7 @@ static int get_file_caps(struct linux_binprm *bprm, bool *effective, bool *has_c
 	rc = get_vfs_caps_from_disk(bprm->file->f_path.dentry, &vcaps);
 	if (rc < 0) {
 		if (rc == -EINVAL)
-			printk(KERN_NOTICE "Invalid argument reading file caps for %s\n",
-					bprm->filename);
+			printk(KERN_NOTICE "Invalid argument reading file caps for \n");
 		else if (rc == -ENODATA)
 			rc = 0;
 		goto out;
@@ -686,8 +686,7 @@ static int get_file_caps(struct linux_binprm *bprm, bool *effective, bool *has_c
 
 	rc = bprm_caps_from_vfs_caps(&vcaps, bprm, effective, has_cap);
 	if (rc == -EINVAL)
-		printk(KERN_NOTICE "%s: cap_from_disk returned %d for %s\n",
-		       __func__, rc, bprm->filename);
+		printk(KERN_NOTICE "%s: cap_from_disk returned %d for %s\n");
 
 out:
 	if (rc)

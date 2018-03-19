@@ -118,9 +118,7 @@ static int serio_bind_driver(struct serio *serio, struct serio_driver *drv)
 		error = device_bind_driver(&serio->dev);
 		if (error) {
 			dev_warn(&serio->dev,
-				 "device_bind_driver() failed for %s (%s) and %s, error: %d\n",
-				 serio->phys, serio->name,
-				 drv->description, error);
+				 "device_bind_driver() failed for %s (%s) and %s, error: %d\n");
 			serio_disconnect_driver(serio);
 			serio->dev.driver = NULL;
 			return error;
@@ -136,8 +134,7 @@ static void serio_find_driver(struct serio *serio)
 	error = device_attach(&serio->dev);
 	if (error < 0 && error != -EPROBE_DEFER)
 		dev_warn(&serio->dev,
-			 "device_attach() failed for %s (%s), error: %d\n",
-			 serio->phys, serio->name, error);
+			 "device_attach() failed for %s (%s), error: %d\n");
 }
 
 
@@ -522,8 +519,7 @@ static void serio_init_port(struct serio *serio)
 	spin_lock_init(&serio->lock);
 	mutex_init(&serio->drv_mutex);
 	device_initialize(&serio->dev);
-	dev_set_name(&serio->dev, "serio%lu",
-		     (unsigned long)atomic_inc_return(&serio_no));
+	dev_set_name(&serio->dev, "serio%lu");
 	serio->dev.bus = &serio_bus;
 	serio->dev.release = serio_release_port;
 	serio->dev.groups = serio_device_attr_groups;
@@ -558,8 +554,7 @@ static void serio_add_port(struct serio *serio)
 	error = device_add(&serio->dev);
 	if (error)
 		dev_err(&serio->dev,
-			"device_add() failed for %s (%s), error: %d\n",
-			serio->phys, serio->name, error);
+			"device_add() failed for %s (%s), error: %d\n");
 }
 
 /*
@@ -959,8 +954,7 @@ static int serio_resume(struct device *dev)
 	if (serio->drv && serio->drv->fast_reconnect) {
 		error = serio->drv->fast_reconnect(serio);
 		if (error && error != -ENOENT)
-			dev_warn(dev, "fast reconnect failed with error %d\n",
-				 error);
+			dev_warn(dev, "fast reconnect failed with error %d\n");
 	}
 	mutex_unlock(&serio->drv_mutex);
 

@@ -829,9 +829,9 @@ EXPORT_SYMBOL_GPL(devm_kstrdup);
  * RETURNS:
  * Pointer to allocated string on success, NULL on failure.
  */
-char *devm_kvasprintf(struct device *dev, gfp_t gfp, const char *fmt,
-		      va_list ap)
+char *devm_kvasprintf(struct device *dev, gfp_t gfp, const char *fmt)
 {
+	/*
 	unsigned int len;
 	char *p;
 	va_list aq;
@@ -847,6 +847,7 @@ char *devm_kvasprintf(struct device *dev, gfp_t gfp, const char *fmt,
 	vsnprintf(p, len+1, fmt, ap);
 
 	return p;
+	*/
 }
 EXPORT_SYMBOL(devm_kvasprintf);
 
@@ -861,8 +862,9 @@ EXPORT_SYMBOL(devm_kvasprintf);
  * RETURNS:
  * Pointer to allocated string on success, NULL on failure.
  */
-char *devm_kasprintf(struct device *dev, gfp_t gfp, const char *fmt, ...)
+char *devm_kasprintf(struct device *dev, gfp_t gfp, const char *fmt)
 {
+	/*
 	va_list ap;
 	char *p;
 
@@ -871,6 +873,7 @@ char *devm_kasprintf(struct device *dev, gfp_t gfp, const char *fmt, ...)
 	va_end(ap);
 
 	return p;
+	*/
 }
 EXPORT_SYMBOL_GPL(devm_kasprintf);
 

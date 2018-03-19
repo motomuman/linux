@@ -214,19 +214,19 @@ SYSCALL_DEFINE3(virtio_mmio_device_add, long, base, long, size, unsigned int,
 
 	pdev = platform_device_alloc("virtio-mmio", PLATFORM_DEVID_AUTO);
 	if (!pdev) {
-		dev_err(&pdev->dev, "%s: Unable to device alloc for virtio-mmio\n", __func__);
+		dev_err(&pdev->dev, "hoge: Unable to device alloc for virtio-mmio\n");
 		return -ENOMEM;
 	}
 
 	ret = platform_device_add_resources(pdev, res, ARRAY_SIZE(res));
 	if (ret) {
-		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n", __func__, pdev->name, pdev->id);
+		dev_err(&pdev->dev, "hoge: Unable to add resources for hogehoge\n");
 		goto exit_device_put;
 	}
 
 	ret = platform_device_add(pdev);
 	if (ret < 0) {
-		dev_err(&pdev->dev, "%s: Unable to add %s%d\n", __func__, pdev->name, pdev->id);
+		dev_err(&pdev->dev, "hoge: Unable to add hogehoge\n");
 		goto exit_release_pdev;
 	}
 

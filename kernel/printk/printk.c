@@ -811,7 +811,7 @@ static ssize_t devkmsg_write(struct kiocb *iocb, struct iov_iter *from)
 		}
 	}
 
-	printk_emit(facility, level, NULL, 0, "%s", line);
+	printk_emit(facility, level, NULL, 0, "line");
 	kfree(buf);
 	return ret;
 }
@@ -1682,7 +1682,7 @@ static size_t log_output(int facility, int level, enum log_flags lflags, const c
 
 asmlinkage int vprintk_emit(int facility, int level,
 			    const char *dict, size_t dictlen,
-			    const char *fmt, va_list args)
+			    const char *fmt)
 {
 	static char textbuf[LOG_LINE_MAX];
 	char *text = textbuf;
@@ -1706,8 +1706,9 @@ asmlinkage int vprintk_emit(int facility, int level,
 	 * The printf needs to come first; we need the syslog
 	 * prefix which might be passed-in as a parameter.
 	 */
-	text_len = vscnprintf(text, sizeof(textbuf), fmt, args);
+	strncpy(text, fmt, LOG_LINE_MAX);//, fmt, args);
 
+	text_len = strlen(text);
 	/* mark and strip a trailing newline */
 	if (text_len && text[text_len-1] == '\n') {
 		text_len--;
@@ -1761,39 +1762,36 @@ asmlinkage int vprintk_emit(int facility, int level,
 }
 EXPORT_SYMBOL(vprintk_emit);
 
-asmlinkage int vprintk(const char *fmt, va_list args)
+asmlinkage int vprintk(const char *fmt)
 {
-	return vprintk_func(fmt, args);
+	return vprintk_func(fmt);
 }
 EXPORT_SYMBOL(vprintk);
 
 asmlinkage int printk_emit(int facility, int level,
 			   const char *dict, size_t dictlen,
-			   const char *fmt, ...)
+			   const char *fmt)
 {
-	va_list args;
 	int r;
 
-	va_start(args, fmt);
-	r = vprintk_emit(facility, level, dict, dictlen, fmt, args);
-	va_end(args);
+	r = vprintk_emit(facility, level, dict, dictlen, fmt);
 
 	return r;
 }
 EXPORT_SYMBOL(printk_emit);
 
-int vprintk_default(const char *fmt, va_list args)
+int vprintk_default(const char *fmt)
 {
 	int r;
 
 #ifdef CONFIG_KGDB_KDB
 	/* Allow to pass printk() to kdb but avoid a recursion. */
 	if (unlikely(kdb_trap_printk && kdb_printf_cpu < 0)) {
-		r = vkdb_printf(KDB_MSGSRC_PRINTK, fmt, args);
+		r = vkdb_printf(KDB_MSGSRC_PRINTK, fmt);
 		return r;
 	}
 #endif
-	r = vprintk_emit(0, LOGLEVEL_DEFAULT, NULL, 0, fmt, args);
+	r = vprintk_emit(0, LOGLEVEL_DEFAULT, NULL, 0, fmt);
 
 	return r;
 }
@@ -1820,14 +1818,11 @@ EXPORT_SYMBOL_GPL(vprintk_default);
  *
  * See the vsnprintf() documentation for format string extensions over C99.
  */
-asmlinkage __visible int printk(const char *fmt, ...)
+asmlinkage __visible int printk(const char *fmt)
 {
-	va_list args;
 	int r;
 
-	va_start(args, fmt);
-	r = vprintk_func(fmt, args);
-	va_end(args);
+	r = vprintk_func(fmt);
 
 	return r;
 }
@@ -2714,11 +2709,11 @@ void wake_up_klogd(void)
 	preempt_enable();
 }
 
-int vprintk_deferred(const char *fmt, va_list args)
+int vprintk_deferred(const char *fmt)
 {
 	int r;
 
-	r = vprintk_emit(0, LOGLEVEL_SCHED, NULL, 0, fmt, args);
+	r = vprintk_emit(0, LOGLEVEL_SCHED, NULL, 0, fmt);
 
 	preempt_disable();
 	__this_cpu_or(printk_pending, PRINTK_PENDING_OUTPUT);
@@ -2728,14 +2723,11 @@ int vprintk_deferred(const char *fmt, va_list args)
 	return r;
 }
 
-int printk_deferred(const char *fmt, ...)
+int printk_deferred(const char *fmt)
 {
-	va_list args;
 	int r;
 
-	va_start(args, fmt);
-	r = vprintk_deferred(fmt, args);
-	va_end(args);
+	r = vprintk_deferred(fmt);
 
 	return r;
 }
@@ -3099,14 +3091,9 @@ static char dump_stack_arch_desc_str[128];
  * arch wants to make use of such an ID string, it should initialize this
  * as soon as possible during boot.
  */
-void __init dump_stack_set_arch_desc(const char *fmt, ...)
+void __init dump_stack_set_arch_desc(const char *fmt)
 {
-	va_list args;
-
-	va_start(args, fmt);
-	vsnprintf(dump_stack_arch_desc_str, sizeof(dump_stack_arch_desc_str),
-		  fmt, args);
-	va_end(args);
+	//vsnprintf(dump_stack_arch_desc_str, sizeof(dump_stack_arch_desc_str), fmt);
 }
 
 /**
@@ -3118,15 +3105,10 @@ void __init dump_stack_set_arch_desc(const char *fmt, ...)
  */
 void dump_stack_print_info(const char *log_lvl)
 {
-	printk("%sCPU: %d PID: %d Comm: %.20s %s %s %.*s\n",
-	       log_lvl, raw_smp_processor_id(), current->pid, current->comm,
-	       print_tainted(), init_utsname()->release,
-	       (int)strcspn(init_utsname()->version, " "),
-	       init_utsname()->version);
+	printk("hoge CPU: hoge PID: hoge Comm: hogehoge\n");
 
 	if (dump_stack_arch_desc_str[0] != '\0')
-		printk("%sHardware name: %s\n",
-		       log_lvl, dump_stack_arch_desc_str);
+		printk("hoge Hardware name: hoge\n");
 
 	print_worker_info(log_lvl, current);
 }
@@ -3142,8 +3124,7 @@ void show_regs_print_info(const char *log_lvl)
 {
 	dump_stack_print_info(log_lvl);
 
-	printk("%stask: %p task.stack: %p\n",
-	       log_lvl, current, task_stack_page(current));
+	printk("hogetask: hoge task.stack: hoge\n");
 }
 
 #endif

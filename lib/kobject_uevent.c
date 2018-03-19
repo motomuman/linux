@@ -221,9 +221,7 @@ int kobject_synth_uevent(struct kobject *kobj, const char *buf, size_t count)
 out:
 	if (r) {
 		devpath = kobject_get_path(kobj, GFP_KERNEL);
-		printk(KERN_WARNING "synth uevent: %s: %s",
-		       devpath ?: "unknown device",
-		       msg ?: "failed to send uevent");
+		printk(KERN_WARNING "synth uevent: devpath: msg\n");
 		kfree(devpath);
 	}
 	return r;

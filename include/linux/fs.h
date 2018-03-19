@@ -2174,8 +2174,7 @@ extern int vfs_ustat(dev_t, struct kstatfs *);
 extern int freeze_super(struct super_block *super);
 extern int thaw_super(struct super_block *super);
 extern bool our_mnt(struct vfsmount *mnt);
-extern __printf(2, 3)
-int super_setup_bdi_name(struct super_block *sb, char *fmt, ...);
+extern int super_setup_bdi_name(struct super_block *sb, char *fmt);
 extern int super_setup_bdi(struct super_block *sb);
 
 extern int current_umask(void);
@@ -3274,8 +3273,8 @@ static const struct file_operations __fops = {				\
 	.llseek	 = generic_file_llseek,					\
 }
 
-static inline __printf(1, 2)
-void __simple_attr_check_format(const char *fmt, ...)
+static inline
+void __simple_attr_check_format(const char *fmt)
 {
 	/* don't do anything, just let the compiler check the arguments; */
 }

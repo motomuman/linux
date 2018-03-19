@@ -371,10 +371,10 @@ int platform_device_add(struct platform_device *pdev)
 
 	switch (pdev->id) {
 	default:
-		dev_set_name(&pdev->dev, "%s.%d", pdev->name,  pdev->id);
+		dev_set_name(&pdev->dev, "pdevname.id");
 		break;
 	case PLATFORM_DEVID_NONE:
-		dev_set_name(&pdev->dev, "%s", pdev->name);
+		dev_set_name(&pdev->dev, "pdevname");
 		break;
 	case PLATFORM_DEVID_AUTO:
 		/*
@@ -387,7 +387,7 @@ int platform_device_add(struct platform_device *pdev)
 			goto err_out;
 		pdev->id = ret;
 		pdev->id_auto = true;
-		dev_set_name(&pdev->dev, "%s.%d.auto", pdev->name, pdev->id);
+		dev_set_name(&pdev->dev, "name.id.auto");
 		break;
 	}
 
@@ -406,7 +406,7 @@ int platform_device_add(struct platform_device *pdev)
 		}
 
 		if (p && insert_resource(p, r)) {
-			dev_err(&pdev->dev, "failed to claim resource %d: %pR\n", i, r);
+			dev_err(&pdev->dev, "failed to claim resource %d: %pR\n");
 			ret = -EBUSY;
 			goto failed;
 		}

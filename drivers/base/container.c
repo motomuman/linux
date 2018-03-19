@@ -40,5 +40,5 @@ void __init container_dev_init(void)
 
 	ret = subsys_system_register(&container_subsys, NULL);
 	if (ret)
-		pr_err("%s() failed: %d\n", __func__, ret);
+		pr_err("subsys_system_register, %s() failed: %d\n", __func__, ret);
 }

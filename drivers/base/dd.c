@@ -72,15 +72,13 @@ static void deferred_probe_debug(struct device *dev)
 	ktime_t calltime, delta, rettime;
 	unsigned long long duration;
 
-	printk(KERN_DEBUG "deferred probe %s @ %i\n", dev_name(dev),
-	       task_pid_nr(current));
+	printk(KERN_DEBUG "deferred probe %s @ %i\n");
 	calltime = ktime_get();
 	bus_probe_device(dev);
 	rettime = ktime_get();
 	delta = ktime_sub(rettime, calltime);
 	duration = (unsigned long long) ktime_to_ns(delta) >> 10;
-	printk(KERN_DEBUG "deferred probe %s returned after %lld usecs\n",
-	       dev_name(dev), duration);
+	printk(KERN_DEBUG "deferred probe %s returned after %lld usecs\n");
 }
 
 /*
@@ -262,8 +260,7 @@ bool device_is_bound(struct device *dev)
 static void driver_bound(struct device *dev)
 {
 	if (device_is_bound(dev)) {
-		printk(KERN_WARNING "%s: device %s already bound\n",
-			__func__, kobject_name(&dev->kobj));
+		printk(KERN_WARNING "%s: device %s already bound\n");
 		return;
 	}
 
@@ -390,8 +387,7 @@ re_probe:
 		goto dma_failed;
 
 	if (driver_sysfs_add(dev)) {
-		printk(KERN_ERR "%s: driver_sysfs_add(%s) failed\n",
-			__func__, dev_name(dev));
+		printk(KERN_ERR "%s: driver_sysfs_add(%s) failed\n");
 		goto probe_failed;
 	}
 
@@ -482,8 +478,7 @@ pinctrl_bind_failed:
 	default:
 		/* driver matched but the probe failed */
 		printk(KERN_WARNING
-		       "%s: probe of %s failed with error %d\n",
-		       drv->name, dev_name(dev), ret);
+		       "%s: probe of %s failed with error %d\n");
 	}
 	/*
 	 * Ignore errors returned by ->probe so that the next driver can try

@@ -40,13 +40,9 @@ EXPORT_SYMBOL(kvasprintf);
  * allocation and string copy. In any case, the return value should be
  * freed using kfree_const().
  */
-const char *kvasprintf_const(gfp_t gfp, const char *fmt, va_list ap)
+const char *kvasprintf_const(gfp_t gfp, const char *fmt)
 {
-	if (!strchr(fmt, '%'))
-		return kstrdup_const(fmt, gfp);
-	if (!strcmp(fmt, "%s"))
-		return kstrdup_const(va_arg(ap, const char*), gfp);
-	return kvasprintf(gfp, fmt, ap);
+	return kstrdup_const(fmt, gfp);
 }
 EXPORT_SYMBOL(kvasprintf_const);
 

@@ -1573,7 +1573,7 @@ static int device_add_class_symlinks(struct device *dev)
 	if (of_node) {
 		error = sysfs_create_link(&dev->kobj, &of_node->kobj,"of_node");
 		if (error)
-			dev_warn(dev, "Error %d creating of_node link\n",error);
+			dev_warn(dev, "Error %d creating of_node link\n");
 		/* An error here doesn't warrant bringing down the device */
 	}
 
@@ -1640,15 +1640,14 @@ static void device_remove_class_symlinks(struct device *dev)
  * @dev: device
  * @fmt: format string for the device's name
  */
-int dev_set_name(struct device *dev, const char *fmt, ...)
+int dev_set_name(struct device *dev, const char *fmt)
 {
-	va_list vargs;
 	int err;
 
-	va_start(vargs, fmt);
-	err = kobject_set_name_vargs(&dev->kobj, fmt, vargs);
-	va_end(vargs);
-	return err;
+	//va_start(vargs, fmt);
+	err = kobject_set_name_vargs(&dev->kobj, fmt);
+	//va_end(vargs);
+	return 0;
 }
 EXPORT_SYMBOL_GPL(dev_set_name);
 
@@ -1758,13 +1757,13 @@ int device_add(struct device *dev)
 	 * the name, and force the use of dev_name()
 	 */
 	if (dev->init_name) {
-		dev_set_name(dev, "%s", dev->init_name);
+		dev_set_name(dev, "hoge");
 		dev->init_name = NULL;
 	}
 
 	/* subsystems can specify simple device enumeration */
 	if (!dev_name(dev) && dev->bus && dev->bus->dev_name)
-		dev_set_name(dev, "%s%u", dev->bus->dev_name, dev->id);
+		dev_set_name(dev, "fuga");
 
 	if (!dev_name(dev)) {
 		error = -EINVAL;
@@ -2341,7 +2340,7 @@ struct device *__root_device_register(const char *name, struct module *owner)
 	if (!root)
 		return ERR_PTR(err);
 
-	err = dev_set_name(&root->dev, "%s", name);
+	err = dev_set_name(&root->dev, "root_dev");
 	if (err) {
 		kfree(root);
 		return ERR_PTR(err);
@@ -2401,7 +2400,7 @@ static struct device *
 device_create_groups_vargs(struct class *class, struct device *parent,
 			   dev_t devt, void *drvdata,
 			   const struct attribute_group **groups,
-			   const char *fmt, va_list args)
+			   const char *fmt)
 {
 	struct device *dev = NULL;
 	int retval = -ENODEV;
@@ -2423,9 +2422,9 @@ device_create_groups_vargs(struct class *class, struct device *parent,
 	dev->release = device_create_release;
 	dev_set_drvdata(dev, drvdata);
 
-	retval = kobject_set_name_vargs(&dev->kobj, fmt, args);
-	if (retval)
-		goto error;
+	//retval = kobject_set_name_vargs(&dev->kobj, fmt, args);
+	//if (retval)
+	//	goto error;
 
 	retval = device_add(dev);
 	if (retval)
@@ -2464,11 +2463,10 @@ error:
  * been created with a call to class_create().
  */
 struct device *device_create_vargs(struct class *class, struct device *parent,
-				   dev_t devt, void *drvdata, const char *fmt,
-				   va_list args)
+				   dev_t devt, void *drvdata, const char *fmt)
 {
 	return device_create_groups_vargs(class, parent, devt, drvdata, NULL,
-					  fmt, args);
+					  fmt);
 }
 EXPORT_SYMBOL_GPL(device_create_vargs);
 
@@ -2497,14 +2495,11 @@ EXPORT_SYMBOL_GPL(device_create_vargs);
  * been created with a call to class_create().
  */
 struct device *device_create(struct class *class, struct device *parent,
-			     dev_t devt, void *drvdata, const char *fmt, ...)
+			     dev_t devt, void *drvdata, const char *fmt)
 {
-	va_list vargs;
 	struct device *dev;
 
-	va_start(vargs, fmt);
-	dev = device_create_vargs(class, parent, devt, drvdata, fmt, vargs);
-	va_end(vargs);
+	dev = device_create_vargs(class, parent, devt, drvdata, fmt);
 	return dev;
 }
 EXPORT_SYMBOL_GPL(device_create);
@@ -2540,15 +2535,12 @@ struct device *device_create_with_groups(struct class *class,
 					 struct device *parent, dev_t devt,
 					 void *drvdata,
 					 const struct attribute_group **groups,
-					 const char *fmt, ...)
+					 const char *fmt)
 {
-	va_list vargs;
 	struct device *dev;
 
-	va_start(vargs, fmt);
 	dev = device_create_groups_vargs(class, parent, devt, drvdata, groups,
-					 fmt, vargs);
-	va_end(vargs);
+					 fmt);
 	return dev;
 }
 EXPORT_SYMBOL_GPL(device_create_with_groups);
@@ -2886,27 +2878,23 @@ overflow:
 }
 
 int dev_vprintk_emit(int level, const struct device *dev,
-		     const char *fmt, va_list args)
+		     const char *fmt)
 {
 	char hdr[128];
 	size_t hdrlen;
 
 	hdrlen = create_syslog_header(dev, hdr, sizeof(hdr));
 
-	return vprintk_emit(0, level, hdrlen ? hdr : NULL, hdrlen, fmt, args);
+	return vprintk_emit(0, level, hdrlen ? hdr : NULL, hdrlen, fmt);
 }
 EXPORT_SYMBOL(dev_vprintk_emit);
 
-int dev_printk_emit(int level, const struct device *dev, const char *fmt, ...)
+int dev_printk_emit(int level, const struct device *dev, const char *fmt)
 {
-	va_list args;
 	int r;
 
-	va_start(args, fmt);
 
-	r = dev_vprintk_emit(level, dev, fmt, args);
-
-	va_end(args);
+	r = dev_vprintk_emit(level, dev, fmt);
 
 	return r;
 }
@@ -2916,43 +2904,27 @@ static void __dev_printk(const char *level, const struct device *dev,
 			struct va_format *vaf)
 {
 	if (dev)
-		dev_printk_emit(level[1] - '0', dev, "%s %s: %pV",
-				dev_driver_string(dev), dev_name(dev), vaf);
+		dev_printk_emit(level[1] - '0', dev, "s s hogehoge");
 	else
-		printk("%s(NULL device *): %pV", level, vaf);
+		printk("%s(NULL device *): %pV");
 }
 
 void dev_printk(const char *level, const struct device *dev,
-		const char *fmt, ...)
+		const char *fmt)
 {
 	struct va_format vaf;
-	va_list args;
-
-	va_start(args, fmt);
-
-	vaf.fmt = fmt;
-	vaf.va = &args;
 
 	__dev_printk(level, dev, &vaf);
 
-	va_end(args);
 }
 EXPORT_SYMBOL(dev_printk);
 
 #define define_dev_printk_level(func, kern_level)		\
-void func(const struct device *dev, const char *fmt, ...)	\
+void func(const struct device *dev, const char *fmt)	\
 {								\
 	struct va_format vaf;					\
-	va_list args;						\
-								\
-	va_start(args, fmt);					\
-								\
-	vaf.fmt = fmt;						\
-	vaf.va = &args;						\
-								\
 	__dev_printk(kern_level, dev, &vaf);			\
 								\
-	va_end(args);						\
 }								\
 EXPORT_SYMBOL(func);
 

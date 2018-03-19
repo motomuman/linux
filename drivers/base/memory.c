@@ -846,6 +846,6 @@ int __init memory_dev_init(void)
 
 out:
 	if (ret)
-		printk(KERN_ERR "%s() failed: %d\n", __func__, ret);
+		printk(KERN_ERR "memory dev init %s() failed: %d\n", __func__, ret);
 	return ret;
 }

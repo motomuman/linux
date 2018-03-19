@@ -24,9 +24,9 @@
 
 extern raw_spinlock_t logbuf_lock;
 
-__printf(1, 0) int vprintk_default(const char *fmt, va_list args);
-__printf(1, 0) int vprintk_deferred(const char *fmt, va_list args);
-__printf(1, 0) int vprintk_func(const char *fmt, va_list args);
+int vprintk_default(const char *fmt);
+int vprintk_deferred(const char *fmt);
+int vprintk_func(const char *fmt);
 void __printk_safe_enter(void);
 void __printk_safe_exit(void);
 
@@ -56,7 +56,7 @@ void __printk_safe_exit(void);
 
 #else
 
-__printf(1, 0) int vprintk_func(const char *fmt, va_list args) { return 0; }
+int vprintk_func(const char *fmt) { return 0; }
 
 /*
  * In !PRINTK builds we still export logbuf_lock spin_lock, console_sem

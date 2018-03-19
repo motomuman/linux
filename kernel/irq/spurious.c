@@ -198,11 +198,10 @@ static void __report_bad_irq(struct irq_desc *desc, irqreturn_t action_ret)
 	unsigned long flags;
 
 	if (bad_action_ret(action_ret)) {
-		printk(KERN_ERR "irq event %d: bogus return value %x\n",
-				irq, action_ret);
+		printk(KERN_ERR "irq event hoge: bogus return value hoge\n");
 	} else {
-		printk(KERN_ERR "irq %d: nobody cared (try booting with "
-				"the \"irqpoll\" option)\n", irq);
+		printk(KERN_ERR "irq hoge: nobody cared (try booting with "
+				"the \"irqpoll\" option)\n");
 	}
 	dump_stack();
 	printk(KERN_ERR "handlers:\n");
@@ -215,10 +214,9 @@ static void __report_bad_irq(struct irq_desc *desc, irqreturn_t action_ret)
 	 */
 	raw_spin_lock_irqsave(&desc->lock, flags);
 	for_each_action_of_desc(desc, action) {
-		printk(KERN_ERR "[<%p>] %pf", action->handler, action->handler);
+		printk(KERN_ERR "[hoge] fuga");
 		if (action->thread_fn)
-			printk(KERN_CONT " threaded [<%p>] %pf",
-					action->thread_fn, action->thread_fn);
+			printk(KERN_CONT " threaded hoge hoge");
 		printk(KERN_CONT "\n");
 	}
 	raw_spin_unlock_irqrestore(&desc->lock, flags);
@@ -418,7 +416,7 @@ void note_interrupt(struct irq_desc *desc, irqreturn_t action_ret)
 		/*
 		 * Now kill the IRQ
 		 */
-		printk(KERN_EMERG "Disabling IRQ #%d\n", irq);
+		printk(KERN_EMERG "Disabling IRQ hoge\n");
 		desc->istate |= IRQS_SPURIOUS_DISABLED;
 		desc->depth++;
 		irq_disable(desc);

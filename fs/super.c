@@ -437,8 +437,7 @@ void generic_shutdown_super(struct super_block *sb)
 
 		if (!list_empty(&sb->s_inodes)) {
 			printk("VFS: Busy inodes after unmount of %s. "
-			   "Self-destruct in 5 seconds.  Have a nice day...\n",
-			   sb->s_id);
+			   "Self-destruct in 5 seconds.  Have a nice day...\n");
 		}
 	}
 	spin_lock(&sb_lock);
@@ -1259,11 +1258,10 @@ out:
  * Setup private BDI for given superblock. It gets automatically cleaned up
  * in generic_shutdown_super().
  */
-int super_setup_bdi_name(struct super_block *sb, char *fmt, ...)
+int super_setup_bdi_name(struct super_block *sb, char *fmt)
 {
 	struct backing_dev_info *bdi;
 	int err;
-	va_list args;
 
 	bdi = bdi_alloc(GFP_KERNEL);
 	if (!bdi)
@@ -1271,9 +1269,7 @@ int super_setup_bdi_name(struct super_block *sb, char *fmt, ...)
 
 	bdi->name = sb->s_type->name;
 
-	va_start(args, fmt);
-	err = bdi_register_va(bdi, fmt, args);
-	va_end(args);
+	err = bdi_register_va(bdi, fmt);
 	if (err) {
 		bdi_put(bdi);
 		return err;
@@ -1293,8 +1289,7 @@ int super_setup_bdi(struct super_block *sb)
 {
 	static atomic_long_t bdi_seq = ATOMIC_LONG_INIT(0);
 
-	return super_setup_bdi_name(sb, "%.28s-%ld", sb->s_type->name,
-				    atomic_long_inc_return(&bdi_seq));
+	return super_setup_bdi_name(sb, "%.28s-%ld");
 }
 EXPORT_SYMBOL(super_setup_bdi);
 

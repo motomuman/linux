@@ -36,17 +36,16 @@ void show_mem(unsigned int filter, nodemask_t *nodemask)
 		pgdat_resize_unlock(pgdat, &flags);
 	}
 
-	printk("%lu pages RAM\n", total);
-	printk("%lu pages HighMem/MovableOnly\n", highmem);
-	printk("%lu pages reserved\n", reserved);
+	printk("%lu pages RAM\n");
+	printk("%lu pages HighMem/MovableOnly\n");
+	printk("%lu pages reserved\n");
 #ifdef CONFIG_CMA
-	printk("%lu pages cma reserved\n", totalcma_pages);
+	printk("%lu pages cma reserved\n");
 #endif
 #ifdef CONFIG_QUICKLIST
-	printk("%lu pages in pagetable cache\n",
-		quicklist_total_size());
+	printk("%lu pages in pagetable cache\n");
 #endif
 #ifdef CONFIG_MEMORY_FAILURE
-	printk("%lu pages hwpoisoned\n", atomic_long_read(&num_poisoned_pages));
+	printk("%lu pages hwpoisoned\n");
 #endif
 }

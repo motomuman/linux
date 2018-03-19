@@ -12,33 +12,29 @@
 
 static inline void print_irq_desc(unsigned int irq, struct irq_desc *desc)
 {
-	printk("irq %d, desc: %p, depth: %d, count: %d, unhandled: %d\n",
-		irq, desc, desc->depth, desc->irq_count, desc->irqs_unhandled);
-	printk("->handle_irq():  %p, ", desc->handle_irq);
-	print_symbol("%s\n", (unsigned long)desc->handle_irq);
-	printk("->irq_data.chip(): %p, ", desc->irq_data.chip);
-	print_symbol("%s\n", (unsigned long)desc->irq_data.chip);
-	printk("->action(): %p\n", desc->action);
+	printk("irq hoge, desc: hoge, depth: hoge, count: hoge, unhandled: hoge\n");
+	printk("->handle_irq():  hoge, ");
+	printk("->irq_data.chip(): hoge, ");
+	printk("->action(): hoge\n");
 	if (desc->action) {
-		printk("->action->handler(): %p, ", desc->action->handler);
-		print_symbol("%s\n", (unsigned long)desc->action->handler);
+		printk("->action->handler(): hoge, ");
 	}
 
-	___P(IRQ_LEVEL);
-	___P(IRQ_PER_CPU);
-	___P(IRQ_NOPROBE);
-	___P(IRQ_NOREQUEST);
-	___P(IRQ_NOTHREAD);
-	___P(IRQ_NOAUTOEN);
+	//___P(IRQ_LEVEL);
+	//___P(IRQ_PER_CPU);
+	//___P(IRQ_NOPROBE);
+	//___P(IRQ_NOREQUEST);
+	//___P(IRQ_NOTHREAD);
+	//___P(IRQ_NOAUTOEN);
 
-	___PS(IRQS_AUTODETECT);
-	___PS(IRQS_REPLAY);
-	___PS(IRQS_WAITING);
-	___PS(IRQS_PENDING);
+	//___PS(IRQS_AUTODETECT);
+	//___PS(IRQS_REPLAY);
+	//___PS(IRQS_WAITING);
+	//___PS(IRQS_PENDING);
 
-	___PD(IRQS_INPROGRESS);
-	___PD(IRQS_DISABLED);
-	___PD(IRQS_MASKED);
+	//___PD(IRQS_INPROGRESS);
+	//___PD(IRQS_DISABLED);
+	//___PD(IRQS_MASKED);
 }
 
 #undef ___P
