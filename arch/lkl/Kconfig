@@ -20,22 +20,153 @@ config LKL
        select HAVE_UNDERSCORE_SYMBOL_PREFIX if OUTPUT_FORMAT = "pe-i386"
        select 64BIT if OUTPUT_FORMAT = "elf64-x86-64-freebsd"
        select 64BIT if OUTPUT_FORMAT = "elf64-littleaarch64"
-       select IP_PNP
-       select IP_PNP_DHCP
-       select TCP_CONG_ADVANCED
-       select TCP_CONG_BBR
-       select HIGH_RES_TIMERS
-       select NET_SCHED
-       select NET_SCH_FQ
-       select IP_MULTICAST
-       select IPV6_MULTICAST
-       select IP_MULTIPLE_TABLES
-       select IPV6_MULTIPLE_TABLES
-       select IP_ROUTE_MULTIPATH
-       select IPV6_ROUTE_MULTIPATH
-       select IP_ADVANCED_ROUTER
-       select IPV6_ADVANCED_ROUTER
+       #select IP_PNP
+       #select IP_PNP_DHCP
+       #select TCP_CONG_ADVANCED
+       #select TCP_CONG_BBR
+       #select HIGH_RES_TIMERS
+       #select NET_SCHED
+       #select NET_SCH_FQ
+       #select IP_MULTICAST
+       #select IPV6_MULTICAST
+       #select IP_MULTIPLE_TABLES
+       #select IPV6_MULTIPLE_TABLES
+       #select IP_ROUTE_MULTIPATH
+       #select IPV6_ROUTE_MULTIPATH
+       #select IP_ADVANCED_ROUTER
+       #select IPV6_ADVANCED_ROUTER
        select ARCH_NO_COHERENT_DMA_MMAP
+
+config BCMA_POSSIBLE
+       def_bool n
+
+
+config FHANDLE
+       def_bool n
+
+config MULTIUSER
+       def_bool n
+
+config BUG
+       def_bool n
+
+config EPOLL
+       def_bool n
+config MOUSE_PS2_ALPS
+       def_bool n
+
+config SYSFS
+       def_bool n
+config PROC_FS
+       def_bool n
+
+config SSB_POSSIBLE
+       def_bool n
+
+config USB_SUPPORT
+       def_bool n
+
+config SLAB_MERGE_DEFAULT
+       def_bool n
+
+config SERIO_LIBPS2
+       def_bool n
+
+config IR_RC5_DECODER
+       def_bool n
+config IR_MCE_KBD_DECODER
+       def_bool n
+config IR_SONY_DECODER
+       def_bool n
+config IR_NEC_DECODER
+       def_bool n
+config IR_SANYO_DECODER
+       def_bool n
+config IR_JVC_DECODER
+       def_bool n
+config IR_RC6_DECODER
+       def_bool n
+config IR_SHARP_DECODER
+       def_bool n
+config IR_XMP_DECODER
+       def_bool n
+
+config MOUSE_PS2_BYD
+       def_bool n
+config MOUSE_PS2_SYNAPTICS
+       def_bool n
+config MOUSE_PS2_LOGIPS2PP
+       def_bool n
+config INPUT_MOUSE
+       def_bool n
+config MOUSE_PS2_CYPRESS
+       def_bool n
+config MOUSE_PS2_FOCALTECH
+       def_bool n
+config MOUSE_PS2_TRACKPOINT
+       def_bool n
+
+config INPUT_KEYBOARD
+       def_bool n
+
+config POSIX_TIMERS
+       def_bool n
+
+config DEVMEM
+       def_bool n
+
+config USB_OHCI_LITTLE_ENDIAN
+       def_bool n
+
+config HW_RANDOM
+       def_bool n
+
+
+config BLK_DEV
+       def_bool n
+
+config STANDALONE
+       def_bool n
+
+config EVENTFD
+       def_bool n
+
+config RC_DECODERS
+       def_bool n
+config RC_MAP
+       def_bool n
+config RC_CORE
+       def_bool n
+
+config MEMBARRIER
+       def_bool n
+
+config SCSI_MOD
+       def_bool n
+
+config HID_GENERIC
+       def_bool n
+
+config MQ_IOSCHED_DEADLINE
+       def_bool n
+
+config IOSCHED_CFQ
+       def_bool n
+
+
+config MQ_IOSCHED_KYBER
+       def_bool n
+config BLOCK
+       def_bool n
+config IOSCHED_DEADLINE
+       def_bool n
+
+config ALLOW_DEV_COREDUMP
+       def_bool n
+       
+config MISC_FILESYSTEMS
+       def_bool n
+
 
 config OUTPUTFORMAT
        string

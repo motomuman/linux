@@ -221,73 +221,6 @@ static int lkl_test_pipe2(void)
 	return TEST_SUCCESS;
 }
 
-static int lkl_test_epoll(void)
-{
-	int epoll_fd, pipe_fds[2];
-	int READ_IDX = 0, WRITE_IDX = 1;
-	struct lkl_epoll_event wait_on, read_result;
-	const char msg[] = "Hello world!";
-	long ret;
-
-	memset(&wait_on, 0, sizeof(wait_on));
-	memset(&read_result, 0, sizeof(read_result));
-
-	ret = lkl_sys_pipe2(pipe_fds, LKL_O_NONBLOCK);
-	if (ret) {
-		lkl_test_logf("pipe2 error: %s\n", lkl_strerror(ret));
-		return TEST_FAILURE;
-	}
-
-	epoll_fd = lkl_sys_epoll_create(1);
-	if (epoll_fd < 0) {
-		lkl_test_logf("epoll_create error: %s\n", lkl_strerror(ret));
-		return TEST_FAILURE;
-	}
-
-	wait_on.events = LKL_POLLIN | LKL_POLLOUT;
-	wait_on.data = pipe_fds[READ_IDX];
-
-	ret = lkl_sys_epoll_ctl(epoll_fd, LKL_EPOLL_CTL_ADD, pipe_fds[READ_IDX],
-				&wait_on);
-	if (ret < 0) {
-		lkl_test_logf("epoll_ctl error: %s\n", lkl_strerror(ret));
-		return TEST_FAILURE;
-	}
-
-	/* Shouldn't be ready before we have written something */
-	ret = lkl_sys_epoll_wait(epoll_fd, &read_result, 1, 0);
-	if (ret != 0) {
-		if (ret < 0)
-			lkl_test_logf("epoll_wait error: %s\n",
-				      lkl_strerror(ret));
-		else
-			lkl_test_logf("epoll_wait: bad event: 0x%lx\n", ret);
-		return TEST_FAILURE;
-	}
-
-	ret = lkl_sys_write(pipe_fds[WRITE_IDX], msg, strlen(msg) + 1);
-	if (ret < 0) {
-		lkl_test_logf("write error: %s\n", lkl_strerror(ret));
-		return TEST_FAILURE;
-	}
-
-	/* We expect exactly 1 fd to be ready immediately */
-	ret = lkl_sys_epoll_wait(epoll_fd, &read_result, 1, 0);
-	if (ret != 1) {
-		if (ret < 0)
-			lkl_test_logf("epoll_wait error: %s\n",
-				      lkl_strerror(ret));
-		else
-			lkl_test_logf("epoll_wait: bad ev no %ld\n", ret);
-		return TEST_FAILURE;
-	}
-
-	/* Already tested reading from pipe2 so no need to do it
-	 * here */
-
-	return TEST_SUCCESS;
-}
-
 LKL_TEST_CALL(chdir_proc, lkl_sys_chdir, 0, "proc");
 
 static int dir_fd;
@@ -526,7 +459,6 @@ struct lkl_test tests[] = {
 	LKL_TEST(nanosleep),
 #endif
 	LKL_TEST(pipe2),
-	LKL_TEST(epoll),
 	LKL_TEST(mount_fs_proc),
 	LKL_TEST(chdir_proc),
 	LKL_TEST(open_cwd),

@@ -67,8 +67,7 @@ int lkl_if_set_mtu(int ifindex, int mtu)
 {
 	struct lkl_ifreq ifr;
 	int err, sock;
-
-	sock = lkl_sys_socket(LKL_AF_INET, LKL_SOCK_DGRAM, 0);
+sock = lkl_sys_socket(LKL_AF_INET, LKL_SOCK_DGRAM, 0);
 	if (sock < 0)
 		return sock;
 
